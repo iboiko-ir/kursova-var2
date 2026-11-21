@@ -12,14 +12,14 @@ export const tokenStore = {
     try {
       localStorage.setItem(TOKEN_KEY, token);
     } catch {
-      // The session then lasts until the page is reloaded.
+      return null;
     }
   },
   clear() {
     try {
       localStorage.removeItem(TOKEN_KEY);
     } catch {
-      // Nothing to clear.
+      return null;
     }
   },
 };
@@ -91,7 +91,6 @@ export async function api(path, { method = 'GET', body, params } = {}) {
   return data;
 }
 
-// This maps validation messages such as "minStock must not be less than 0" to their fields.
 export function fieldErrors(error, fields) {
   const result = {};
   const general = [];

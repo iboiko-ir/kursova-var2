@@ -1,6 +1,5 @@
 import { writeFile } from 'node:fs/promises';
 
-// Saves the live OpenAPI document. Usage: npm run openapi:export -- [url] [file]
 const url = process.argv[2] || 'http://localhost:3000/api/openapi.json';
 const file = process.argv[3] || 'openapi.json';
 

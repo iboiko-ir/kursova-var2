@@ -11,7 +11,6 @@ export function setupSwagger(app) {
     .addBearerAuth()
     .build();
   const document = SwaggerModule.createDocument(app, config);
-  // The message is a string or a list of strings. A plain DTO field cannot express this.
   const errorSchema = document.components.schemas.ErrorDto;
   errorSchema.properties.message = {
     ...errorSchema.properties.message,

@@ -78,3 +78,31 @@ docker compose --profile test run --rm --build backend-test
 ```
 
 To save the live OpenAPI document to a file (the backend must be running): `npm run openapi:export` in `backend/` after `npm run build`.
+
+## Design patterns
+
+The class diagram shows all participants: [class-diagram.svg](docs/diagrams/class-diagram.svg).
+
+### Command: stock movements
+
+Each kind of movement is a command with an `execute` method. `ReceiveGoodsCommand`, `ShipGoodsCommand` and `WriteOffGoodsCommand` check the rules of their own document type (supplier, counterparty or reason), write the ledger lines and update product quantity and inventory value. `MovementService` is the invoker: it locks the products in ID order, chooses the command and runs it inside one database transaction, so a failed line rolls back the whole document. This fits the application because the three movements share one flow but differ in their rules. After changing stock, each command notifies the Observer.
+
+- [stock-command.js](backend/src/inventory/commands/stock-command.js) (contract)
+- [receive-goods.command.js](backend/src/inventory/commands/receive-goods.command.js)
+- [ship-goods.command.js](backend/src/inventory/commands/ship-goods.command.js)
+- [write-off-goods.command.js](backend/src/inventory/commands/write-off-goods.command.js)
+- [ledger.js](backend/src/inventory/commands/ledger.js) (shared weighted-average calculation and ledger writes)
+- [movement.service.js](backend/src/inventory/movement.service.js) (invoker)
+
+### Observer: low-stock notifications
+
+`StockChangeSubject` keeps a list of observers. `LowStockObserver` is subscribed when the inventory module starts. The subject awaits every observer inside the same transaction, so an observer error cancels the whole operation. The observer keeps at most one active notification per product: it creates, updates or resolves it. Commands call the subject after stock changes, and `ProductService` calls it after a product is created, edited, archived or restored, so threshold edits use the same logic.
+
+- [stock-change.subject.js](backend/src/inventory/stock-change.subject.js)
+- [stock-observer.js](backend/src/inventory/stock-observer.js) (contract)
+- [low-stock.observer.js](backend/src/inventory/low-stock.observer.js)
+- [product.service.js](backend/src/products/product.service.js) (extra notifier)
+
+### Strategy: reports
+
+Not implemented yet. It is added together with the reports.

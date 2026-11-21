@@ -1,7 +1,9 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { api, fieldErrors } from './api.js';
 import { useAuth } from './auth.jsx';
 import { ErrorBox, Field, Pagination, Status } from './components.jsx';
+import { money2 } from './format.js';
 import { useDebounced, useList } from './hooks.js';
 
 const FIELDS = ['name', 'sku', 'supplierId', 'catalogPrice', 'minStock'];
@@ -183,7 +185,9 @@ export default function ProductsPage() {
                 <th className="num">Price (UAH)</th>
                 <th className="num">Quantity</th>
                 <th className="num">Min stock</th>
+                <th className="num">Inventory value (UAH)</th>
                 <th>Status</th>
+                <th>Movements</th>
                 {isAdmin && <th>Actions</th>}
               </tr>
             </thead>
@@ -196,7 +200,14 @@ export default function ProductsPage() {
                   <td className="num">{product.catalogPrice}</td>
                   <td className="num">{product.quantity}</td>
                   <td className="num">{product.minStock}</td>
-                  <td>{product.archived ? 'Archived' : 'Active'}</td>
+                  <td className="num">{money2(product.inventoryValue)}</td>
+                  <td>
+                    {product.archived ? 'Archived' : 'Active'}
+                    {!product.archived && product.quantity <= product.minStock && <strong> - Low stock</strong>}
+                  </td>
+                  <td>
+                    <Link to={`/movements?productId=${product.id}`}>History</Link>
+                  </td>
                   {isAdmin && (
                     <td className="row-actions">
                       <button type="button" onClick={() => setEditing(product)}>

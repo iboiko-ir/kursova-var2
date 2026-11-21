@@ -1,5 +1,5 @@
 import { demoCatalogSeed } from './demo-catalog.seed';
+import { demoInventorySeed } from './demo-inventory.seed';
 import { demoUsersSeed } from './demo-users.seed';
 
-// A seeder is an object: { name, run(manager) }. Each seeder must be idempotent.
-export const seeders = [demoUsersSeed, demoCatalogSeed];
+export const seeders = [demoUsersSeed, demoCatalogSeed, demoInventorySeed];

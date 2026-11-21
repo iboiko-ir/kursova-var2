@@ -10,7 +10,6 @@ const COUNTERPARTIES = [
   ['Harbor Logistics', 'Phone: +380 48 200 00 03; Address: 1 Port Avenue, Odesa'],
 ];
 
-// name, SKU, supplier name, catalog price, minimum stock
 const PRODUCTS = [
   ['Steel bolt M8 x 40', 'BOLT-M8-40', 'Baltic Components Ltd', '1.20', 200],
   ['Steel nut M8', 'NUT-M8', 'Baltic Components Ltd', '0.45', 300],
@@ -20,7 +19,6 @@ const PRODUCTS = [
   ['Buckwheat 1 kg', 'BUCK-1KG', 'Green Valley Foods', '54.00', 40],
 ];
 
-// Demo products start with zero stock. Stock is added only by goods receipts.
 export const demoCatalogSeed = {
   name: 'demo-catalog',
   async run(manager) {

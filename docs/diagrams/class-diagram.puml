@@ -47,6 +47,7 @@ package "Domain" {
     reason
     supplierSnapshot
     counterpartySnapshot
+    createdByName
   }
 
   class StockMovementLine {
@@ -87,9 +88,14 @@ package "Services" {
   class ProductService
   class PartyService
   class MovementService {
-    post(type, payload, user)
+    post(input, user)
+    list(query)
+    get(id)
   }
-  class NotificationService
+  class NotificationService {
+    list(query)
+    summary()
+  }
   class ReportService {
     generate(name, params)
   }
@@ -127,10 +133,10 @@ WriteOffGoodsCommand ..> Product : changes stock
 package "Observer pattern" {
   class StockChangeSubject <<Subject>> {
     subscribe(observer)
-    notify(context, product)
+    notify(context, productId)
   }
   interface StockObserver <<Observer>> {
-    onStockChanged(context, product)
+    onStockChanged(context, productId)
   }
   class LowStockObserver <<ConcreteObserver>>
 }

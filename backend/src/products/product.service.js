@@ -2,6 +2,7 @@ import { BadRequestException, ConflictException, Dependencies, Injectable, NotFo
 import { DataSource } from 'typeorm';
 import { escapeLike } from '../common/page';
 import { ProductSchema, SupplierSchema } from '../database/entities';
+import { StockChangeSubject } from '../inventory/stock-change.subject';
 
 const UNIQUE_VIOLATION = '23505';
 
@@ -18,6 +19,7 @@ function toDto(product) {
     catalogPrice: product.catalogPrice,
     minStock: product.minStock,
     quantity: product.quantity,
+    inventoryValue: product.inventoryValue,
     archived: product.archived,
     createdAt: product.createdAt,
     updatedAt: product.updatedAt,
@@ -25,10 +27,11 @@ function toDto(product) {
 }
 
 @Injectable()
-@Dependencies(DataSource)
+@Dependencies(DataSource, StockChangeSubject)
 export class ProductService {
-  constructor(dataSource) {
+  constructor(dataSource, subject) {
     this.dataSource = dataSource;
+    this.subject = subject;
   }
 
   async list({ page, limit, search, includeArchived, supplierId }) {
@@ -65,6 +68,7 @@ export class ProductService {
       await this.requireActiveSupplier(manager, supplierId);
       const repository = manager.getRepository(ProductSchema);
       const saved = await repository.save(repository.create({ name, sku, supplierId, catalogPrice, minStock }));
+      await this.subject.notify({ manager }, saved.id);
       return toDto(await this.load(manager, saved.id));
     });
   }
@@ -86,6 +90,7 @@ export class ProductService {
         { id },
         Object.fromEntries(fields.map((field) => [field, changes[field]])),
       );
+      await this.subject.notify({ manager }, id);
       return toDto(await this.load(manager, id));
     });
   }
@@ -97,6 +102,7 @@ export class ProductService {
         throw new BadRequestException('The supplier of this product is archived. Restore the supplier first.');
       }
       await manager.getRepository(ProductSchema).update({ id }, { archived });
+      await this.subject.notify({ manager }, id);
       return toDto(await this.load(manager, id));
     });
   }
@@ -118,7 +124,6 @@ export class ProductService {
     }
   }
 
-  // Product changes run in one transaction, so later stock checks can join it.
   async write(operation) {
     try {
       return await this.dataSource.transaction(operation);
