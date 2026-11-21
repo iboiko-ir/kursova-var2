@@ -6,6 +6,10 @@ COPY babel.config.json ./
 COPY src ./src
 RUN npm run build
 
+FROM build AS test
+COPY test ./test
+CMD ["npm", "test"]
+
 FROM node:24-alpine
 ENV NODE_ENV=production
 WORKDIR /app
