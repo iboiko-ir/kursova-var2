@@ -1,0 +1,31 @@
+# Local assistant files
+CLAUDE.md
+claude.md
+CLAUDE.local.md
+AGENTS.md
+.claude/
+.codex/
+.ai-local/
+requirements.md
+reqirments.md
+progress.md
+
+# Dependencies and build output
+node_modules/
+dist/
+build/
+coverage/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Secrets
+.env
+.env.*
+!.env.example
+
+# OS and editor
+.DS_Store
+Thumbs.db
+.idea/
