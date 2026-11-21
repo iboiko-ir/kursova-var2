@@ -8,9 +8,9 @@ const today = () => new Date().toISOString().slice(0, 10);
 const daysAgo = (days) => new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
 
 const REPORTS = {
-  'inventory-as-of': 'Inventory as of a date',
-  'movement-dynamics': 'Movement dynamics',
-  'inventory-valuation': 'Inventory valuation',
+  'inventory-as-of': 'Стан складу на певну дату',
+  'movement-dynamics': 'Динаміка руху товарів',
+  'inventory-valuation': 'Фінансова оцінка товарних залишків',
 };
 
 function AsOfResult({ report }) {
