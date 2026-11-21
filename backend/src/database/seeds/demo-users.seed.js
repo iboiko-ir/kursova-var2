@@ -1,8 +1,8 @@
 import { hashPassword } from '../../auth/password';
 
 export const DEMO_USERS = [
-  { username: 'admin', password: 'admin-demo-123', role: 'admin' },
-  { username: 'operator', password: 'operator-demo-123', role: 'operator' },
+  { username: 'admin', password: 'admin', role: 'admin' },
+  { username: 'operator', password: 'operator', role: 'operator' },
 ];
 
 export const demoUsersSeed = {

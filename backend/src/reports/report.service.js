@@ -4,7 +4,11 @@ import { InventoryAsOfStrategy } from './inventory-as-of.strategy';
 import { InventoryValuationStrategy } from './inventory-valuation.strategy';
 import { MovementDynamicsStrategy } from './movement-dynamics.strategy';
 
-// This service is the context. It picks a strategy from a short list.
+// Strategy pattern: this service is the context.
+// It keeps the strategies in a fixed list (map) by report name. The controller
+// asks for a report by name, and the service calls generate() of that strategy.
+// An unknown name is not allowed. A new report needs only a new strategy class
+// and one line in this list.
 @Injectable()
 @Dependencies(DataSource)
 export class ReportService {

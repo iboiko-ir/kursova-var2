@@ -3,7 +3,11 @@ import { unitsToMoney, moneyToUnits } from '../money';
 import { notifyStockChanged, postLedgerLine, postMovementHeader } from './ledger';
 import { StockCommand } from './stock-command';
 
-// This command receives goods.
+// Command pattern: the command for a goods receipt.
+// It checks that a supplier is set, saves the document header and adds stock.
+// Each line adds "quantity x unit cost" to the product value. If the unit cost is
+// not given, the catalog price is used. Then the subject is notified, so the
+// low-stock observer can resolve a notification when there is enough stock now.
 export class ReceiveGoodsCommand extends StockCommand {
   async execute(context, movement) {
     if (!movement.supplier) {

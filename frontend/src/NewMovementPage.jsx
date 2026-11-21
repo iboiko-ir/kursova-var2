@@ -76,9 +76,7 @@ export default function NewMovementPage() {
         <Link to="/movements">Back to movements</Link>
       </div>
       <form className="panel form wide" onSubmit={submit}>
-        <p className="muted">
-          The movement is posted immediately. Posted documents cannot be edited, deleted or backdated.
-        </p>
+        <p className="hint">The document is posted immediately. A posted document cannot be edited or deleted.</p>
         <ErrorBox messages={error?.messages} />
 
         {isReceipt && (
@@ -192,7 +190,6 @@ export default function NewMovementPage() {
             Add line
           </button>
         </div>
-        {isReceipt && <p className="muted">The unit cost is suggested from the catalog price and can be changed.</p>}
 
         <div className="actions">
           <button type="submit" className="primary" disabled={submitting || !products.data}>

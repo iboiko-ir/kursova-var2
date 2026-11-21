@@ -23,9 +23,9 @@ export class CreateUserDto {
   })
   username;
 
-  @ApiProperty({ type: String, minLength: 8, maxLength: 100, format: 'password' })
+  @ApiProperty({ type: String, minLength: 5, maxLength: 100, format: 'password' })
   @IsString()
-  @MinLength(8)
+  @MinLength(5)
   @MaxLength(100)
   password;
 

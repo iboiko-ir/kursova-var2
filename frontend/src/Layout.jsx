@@ -6,44 +6,33 @@ import { useAuth } from './auth.jsx';
 export default function Layout() {
   const { user, loading, isAdmin, logout } = useAuth();
   const location = useLocation();
-  const [active, setActive] = useState(null);
+  const [activeNotificationCount, setActiveNotificationCount] = useState(null);
 
   useEffect(() => {
     if (!user) {
       return undefined;
     }
-    let current = true;
+    let isCurrent = true;
     apiRequest('/notifications/summary')
-      .then((result) => current && setActive(result.active))
-      .catch(() => current && setActive(null));
+      .then((summary) => isCurrent && setActiveNotificationCount(summary.active))
+      .catch(() => isCurrent && setActiveNotificationCount(null));
     return () => {
-      current = false;
+      isCurrent = false;
     };
   }, [user, location.pathname]);
 
   if (loading) {
-    return <p className="muted content">Loading...</p>;
+    return <p className="loading-page">Loading...</p>;
   }
   if (!user) {
     return <Navigate to="/login" replace />;
   }
 
   return (
-    <>
+    <div className="app">
       <header className="topbar no-print">
         <span className="brand">kursova</span>
-        <nav aria-label="Main navigation">
-          <NavLink to="/products">Products</NavLink>
-          <NavLink to="/movements">Movements</NavLink>
-          <NavLink to="/notifications">
-            Notifications
-            {active > 0 && <span className="badge">{active}</span>}
-          </NavLink>
-          <NavLink to="/reports">Reports</NavLink>
-          <NavLink to="/suppliers">Suppliers</NavLink>
-          <NavLink to="/counterparties">Counterparties</NavLink>
-          {isAdmin && <NavLink to="/users">Users</NavLink>}
-        </nav>
+        <span className="topbar-title">Warehouse</span>
         <span className="spacer" />
         <span className="user">
           {user.username} ({user.role})
@@ -52,9 +41,30 @@ export default function Layout() {
           Log out
         </button>
       </header>
-      <main className="content">
-        <Outlet />
-      </main>
-    </>
+      <div className="app-body">
+        <nav className="sidebar no-print" aria-label="Main menu">
+          <div className="sidebar-group">Warehouse</div>
+          <NavLink to="/products">Products</NavLink>
+          <NavLink to="/movements">Movements</NavLink>
+          <NavLink to="/notifications">
+            Notifications
+            {activeNotificationCount > 0 && <span className="badge">{activeNotificationCount}</span>}
+          </NavLink>
+          <NavLink to="/reports">Reports</NavLink>
+          <div className="sidebar-group">Directories</div>
+          <NavLink to="/suppliers">Suppliers</NavLink>
+          <NavLink to="/counterparties">Counterparties</NavLink>
+          {isAdmin && (
+            <>
+              <div className="sidebar-group">Administration</div>
+              <NavLink to="/users">Users</NavLink>
+            </>
+          )}
+        </nav>
+        <main className="content">
+          <Outlet />
+        </main>
+      </div>
+    </div>
   );
 }

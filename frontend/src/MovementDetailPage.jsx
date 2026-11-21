@@ -111,9 +111,6 @@ export default function MovementDetailPage() {
             <div>Issued by: {movement.createdBy}</div>
             <div>Accepted by: ______________________</div>
           </div>
-          <p className="muted no-print">
-            This document is posted and final. Names, SKUs, parties and costs are stored as they were at posting time.
-          </p>
         </article>
       )}
     </>

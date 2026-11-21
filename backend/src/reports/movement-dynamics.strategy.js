@@ -5,7 +5,9 @@ import { ReportStrategy } from './report-strategy';
 const MAX_DAYS = 366;
 const DAY_MS = 24 * 60 * 60 * 1000;
 
-// This strategy counts moved goods for each day.
+// Strategy pattern: "Movement dynamics" report.
+// For every day of the period it counts received, shipped and written-off
+// quantities. Days without movements have zeros. A product filter is optional.
 export class MovementDynamicsStrategy extends ReportStrategy {
   constructor(dataSource) {
     super();

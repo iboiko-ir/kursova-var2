@@ -4,6 +4,8 @@ import { MovementService } from './movement.service';
 import { MovementsController } from './movements.controller';
 import { StockChangeSubject } from './stock-change.subject';
 
+// Observer pattern: when the application starts, this module subscribes
+// LowStockObserver to StockChangeSubject (see the constructor below).
 @Module({
   controllers: [MovementsController],
   providers: [StockChangeSubject, LowStockObserver, MovementService],
@@ -11,7 +13,7 @@ import { StockChangeSubject } from './stock-change.subject';
 })
 @Dependencies(StockChangeSubject, LowStockObserver)
 export class InventoryModule {
-  constructor(subject, lowStockObserver) {
-    subject.subscribe(lowStockObserver);
+  constructor(stockChangeSubject, lowStockObserver) {
+    stockChangeSubject.subscribe(lowStockObserver);
   }
 }

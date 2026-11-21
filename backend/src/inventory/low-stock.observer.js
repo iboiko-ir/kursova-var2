@@ -1,7 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { StockObserver } from './stock-observer';
 
-// This observer checks low stock.
+// Observer pattern: the observer that keeps low-stock notifications up to date.
+// It reads the product again and compares quantity with the minimum stock:
+// - quantity <= minimum and no active notification: create a new notification;
+// - quantity <= minimum and an active notification: update its numbers;
+// - quantity > minimum and an active notification: mark it as resolved.
+// So a product never has more than one active notification, and a notification
+// becomes resolved by itself after a receipt or after the minimum is lowered.
 @Injectable()
 export class LowStockObserver extends StockObserver {
   async onStockChanged({ manager }, productId) {

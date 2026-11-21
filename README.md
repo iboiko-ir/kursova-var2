@@ -64,8 +64,8 @@ Demo accounts (demo-only, created automatically):
 
 | Username | Password | Role |
 | --- | --- | --- |
-| `admin` | `admin-demo-123` | admin |
-| `operator` | `operator-demo-123` | operator |
+| `admin` | `admin` | admin |
+| `operator` | `operator` | operator |
 
 Operators can view products and parties, post movements, print documents and view notifications and reports. Admins can also create users and create, edit and archive products, suppliers and counterparties. In Swagger UI, log in with `POST /api/auth/login`, press Authorize and paste the access token.
 

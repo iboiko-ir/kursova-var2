@@ -58,7 +58,12 @@ export async function notifyStockChanged(context, movement) {
   }
 }
 
-// Stock leaves at the weighted-average cost. The last units take all remaining value.
+// Command pattern: shared work of the shipment and write-off commands.
+// Goods leave the warehouse at the weighted-average cost:
+// value out = product value x quantity out / product quantity.
+// When the last units leave, they take all remaining value, so a product with
+// zero quantity never keeps a small value after rounding.
+// If one line asks for more than the stock, an error stops the whole document.
 export async function removeStock(context, movement) {
   for (const { product, quantity } of movement.lines) {
     if (quantity > product.quantity) {

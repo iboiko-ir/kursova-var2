@@ -142,9 +142,7 @@ export default function ReportsPage() {
         <h1>Reports</h1>
       </div>
       <form className="panel form wide no-print" onSubmit={runReport}>
-        <p className="muted">
-          Dates are UTC calendar days. A report for a date includes the whole day. Values are inventory costs in UAH.
-        </p>
+        <p className="hint">Dates are UTC calendar days. Values are inventory costs in UAH.</p>
         <ErrorBox messages={error?.messages} />
         <div className="filters toolbar">
           <Field label="Report">
