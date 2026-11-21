@@ -32,15 +32,26 @@ UML-діаграми: [діаграма варіантів використан�
 
 ## Run locally
 
-Prerequisite: Docker Desktop (with WSL on Windows). Node.js and PostgreSQL are not needed on the host.
+Prerequisite: Docker Desktop (with WSL on Windows). Node.js and PostgreSQL are not needed.
 
-Start everything from the repository root:
+Download the repository:
+
+```bash
+git clone https://github.com/iboiko-ir/kursova-var2.git
+cd kursova-var2
+```
+
+Build and start the application:
 
 ```bash
 docker compose up --build -d
 ```
 
-Migrations and seeding run automatically before the backend starts.
+Stop the application (the data is kept):
+
+```bash
+docker compose down
+```
 
 | Service | URL |
 | --- | --- |
@@ -49,42 +60,16 @@ Migrations and seeding run automatically before the backend starts.
 | Swagger UI | http://localhost:3000/api/docs |
 | OpenAPI JSON | http://localhost:3000/api/openapi.json |
 
-If a default host port is busy, copy `.env.example` to `.env` and change `FRONTEND_PORT` or `BACKEND_PORT`.
-
-Demo accounts (demo-only, created by automatic seeding):
+Demo accounts (demo-only, created automatically):
 
 | Username | Password | Role |
 | --- | --- | --- |
 | `admin` | `admin-demo-123` | admin |
 | `operator` | `operator-demo-123` | operator |
 
-Operators can view products and parties. Admins can also create, edit and archive products, suppliers and counterparties. In Swagger UI, log in with `POST /api/auth/login`, press Authorize and paste the access token.
+Operators can view products and parties, post movements, print documents and view notifications and reports. Admins can also create users and create, edit and archive products, suppliers and counterparties. In Swagger UI, log in with `POST /api/auth/login`, press Authorize and paste the access token.
 
-Logs:
-
-```bash
-docker compose logs -f
-```
-
-Stop (data is kept in the named Docker volume):
-
-```bash
-docker compose down
-```
-
-Optional reset. This permanently deletes all stored data:
-
-```bash
-docker compose down -v
-```
-
-Backend integration tests run against a temporary PostgreSQL database and do not touch stored data:
-
-```bash
-docker compose --profile test run --rm --build backend-test
-```
-
-To save the live OpenAPI document to a file (the backend must be running): `npm run openapi:export` in `backend/` after `npm run build`.
+If port 8080 or 3000 is already used, set `FRONTEND_PORT` or `BACKEND_PORT` in a `.env` file (see `.env.example`).
 
 ## Design patterns
 
