@@ -34,7 +34,7 @@ function NewUserForm({ onSaved, onCancel }) {
       <Field label="Username" errors={fields.username}>
         <input value={values.username} maxLength={50} onChange={setValue('username')} autoComplete="off" required />
       </Field>
-      <Field label="Password (at least 8 characters)" errors={fields.password}>
+      <Field label="Password (at least 5 characters)" errors={fields.password}>
         <input
           type="password"
           value={values.password}
@@ -77,7 +77,6 @@ export default function UsersPage() {
           </button>
         )}
       </div>
-      <p className="muted">There is no public sign-up. Only an admin adds users.</p>
 
       {showForm && (
         <NewUserForm

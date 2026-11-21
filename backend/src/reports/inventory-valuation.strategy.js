@@ -2,7 +2,9 @@ import { unitsToMoney, moneyToUnits } from '../inventory/money';
 import { ledgerBalances } from './ledger-balances';
 import { ReportStrategy } from './report-strategy';
 
-// This strategy adds up the value of stock.
+// Strategy pattern: "Financial valuation of stock" report.
+// It uses the same ledger sums, keeps only products with stock and adds up
+// a grand total of the inventory value on the chosen day.
 export class InventoryValuationStrategy extends ReportStrategy {
   constructor(dataSource) {
     super();

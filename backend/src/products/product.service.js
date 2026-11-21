@@ -66,6 +66,8 @@ export class ProductService {
     return toProductResponse(await this.findProduct(this.dataSource.manager, productId));
   }
 
+  // Observer pattern: product changes also notify the stock change subject,
+  // because a new minimum stock or archiving can create or resolve a notification.
   async create({ name, sku, supplierId, catalogPrice, minStock, initialQuantity }, user) {
     return this.runInTransaction(async (manager) => {
       await this.requireActiveSupplier(manager, supplierId);

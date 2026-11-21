@@ -2,7 +2,10 @@ import { unitsToMoney, multiplyThenDivide, moneyToUnits } from '../inventory/mon
 import { ledgerBalances } from './ledger-balances';
 import { ReportStrategy } from './report-strategy';
 
-// This strategy shows stock on one date.
+// Strategy pattern: "Stock as of a date" report.
+// It sums the ledger deltas of every product up to the end of the chosen day.
+// Unit cost = value / quantity. The catalog price is not used, so later price
+// changes do not change old reports.
 export class InventoryAsOfStrategy extends ReportStrategy {
   constructor(dataSource) {
     super();

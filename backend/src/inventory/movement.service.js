@@ -22,7 +22,13 @@ function toPartySnapshot(id, name, contactDetails) {
   return id ? { id, name, contactDetails } : null;
 }
 
-// This service is the invoker. It picks a command and runs it in one transaction.
+// Command pattern: this service is the invoker.
+// post() opens one database transaction. Inside it, the service checks the
+// request, loads the supplier or counterparty, locks the product rows and then
+// picks the command by the document type and calls execute().
+// The service does not know how each document changes stock. The commands do.
+// If a command throws an error, the transaction is rolled back: no document,
+// no stock change and no notification change is saved.
 @Injectable()
 @Dependencies(DataSource, StockChangeSubject)
 export class MovementService {
@@ -98,7 +104,9 @@ export class MovementService {
     return party;
   }
 
-  // Product rows are locked in ID order, so two documents cannot block each other.
+  // Product rows are locked (SELECT ... FOR UPDATE) until the transaction ends,
+  // so two users cannot ship the same goods at the same time.
+  // The rows are locked in ID order, so two documents never wait for each other forever.
   async lockProducts(manager, lines) {
     const lockedProducts = new Map();
     const sortedProductIds = lines
