@@ -29,12 +29,13 @@ rectangle "kursova" {
   usecase "Movement dynamics" as UC_ReportDynamics
   usecase "Inventory valuation" as UC_ReportValuation
 
-  usecase "Create user" as UC_CreateUser
+  usecase "Create, edit and delete users" as UC_CreateUser
   usecase "Create and edit product" as UC_ManageProduct
   usecase "Set minimum stock threshold" as UC_Threshold
   usecase "Create and edit supplier" as UC_ManageSupplier
   usecase "Create and edit counterparty" as UC_ManageCounterparty
   usecase "Archive product or party" as UC_Archive
+  usecase "Delete unused product or party" as UC_Delete
 
   usecase "Check low stock" as UC_CheckLowStock
 }
@@ -58,6 +59,7 @@ Admin --> UC_Threshold
 Admin --> UC_ManageSupplier
 Admin --> UC_ManageCounterparty
 Admin --> UC_Archive
+Admin --> UC_Delete
 
 UC_Receive ..> UC_CheckLowStock : <<include>>
 UC_Ship ..> UC_CheckLowStock : <<include>>

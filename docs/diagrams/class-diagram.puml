@@ -89,6 +89,8 @@ package "Services" {
   class UserService {
     list(query)
     create(newUser)
+    update(userId, changes, currentUser)
+    delete(userId, currentUser)
   }
   class JwtAuthGuard
   class RolesGuard

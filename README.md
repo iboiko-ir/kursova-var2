@@ -67,7 +67,7 @@ Demo accounts (demo-only, created automatically):
 | `admin` | `admin` | admin |
 | `operator` | `operator` | operator |
 
-Operators can view products and parties, post movements, print documents and view notifications and reports. Admins can also create users and create, edit and archive products, suppliers and counterparties. In Swagger UI, log in with `POST /api/auth/login`, press Authorize and paste the access token.
+Operators can view products and parties, post movements, print documents and view notifications and reports. Admins can also create, edit and delete users, and create, edit, archive and delete products, suppliers and counterparties. Only records that are not used in documents can be deleted. In Swagger UI, log in with `POST /api/auth/login`, press Authorize and paste the access token.
 
 If port 8080 or 3000 is already used, set `FRONTEND_PORT` or `BACKEND_PORT` in a `.env` file (see `.env.example`).
 
