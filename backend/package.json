@@ -1,0 +1,35 @@
+{
+  "name": "kursova-backend",
+  "version": "0.1.0",
+  "private": true,
+  "description": "REST API for the kursova warehouse inventory application",
+  "main": "dist/main.js",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "build": "babel src --out-dir dist --delete-dir-on-start",
+    "start": "node dist/main.js",
+    "start:docker": "node dist/database/migrate.js && node dist/database/seed.js && node dist/main.js",
+    "migrate": "node dist/database/migrate.js",
+    "seed": "node dist/database/seed.js",
+    "openapi:export": "node dist/scripts/export-openapi.js"
+  },
+  "dependencies": {
+    "@nestjs/common": "^11.2.11",
+    "@nestjs/core": "^11.2.11",
+    "@nestjs/platform-express": "^11.2.11",
+    "@nestjs/swagger": "^11.4.8",
+    "@nestjs/typeorm": "^11.0.3",
+    "pg": "^8.23.1",
+    "reflect-metadata": "^0.2.2",
+    "rxjs": "^7.8.2",
+    "typeorm": "^0.3.31"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.29.7",
+    "@babel/core": "^7.29.13",
+    "@babel/plugin-proposal-decorators": "^7.29.7",
+    "@babel/preset-env": "^7.29.14"
+  }
+}

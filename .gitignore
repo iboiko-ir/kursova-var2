@@ -29,3 +29,6 @@ npm-debug.log*
 .DS_Store
 Thumbs.db
 .idea/
+
+# Exported OpenAPI file (the live /api/openapi.json is the source)
+openapi.json
