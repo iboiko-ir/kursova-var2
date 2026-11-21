@@ -114,6 +114,19 @@ export default function ProductsPage() {
   const productList = useApiData('/products', { page, limit: 25, search: debouncedSearch.trim(), includeArchived });
   const suppliers = useApiData('/suppliers', { limit: 200 });
 
+  async function deleteProduct(product) {
+    if (!window.confirm(`Delete product "${product.name}"? This cannot be undone.`)) {
+      return;
+    }
+    setActionError(null);
+    try {
+      await apiRequest(`/products/${product.id}`, { method: 'DELETE' });
+      productList.reload();
+    } catch (caught) {
+      setActionError(caught);
+    }
+  }
+
   async function toggleArchive(product) {
     const action = product.archived ? 'restore' : 'archive';
     if (
@@ -226,6 +239,9 @@ export default function ProductsPage() {
                       </button>
                       <button type="button" onClick={() => toggleArchive(product)}>
                         {product.archived ? 'Restore' : 'Archive'}
+                      </button>
+                      <button type="button" onClick={() => deleteProduct(product)}>
+                        Delete
                       </button>
                     </td>
                   )}
