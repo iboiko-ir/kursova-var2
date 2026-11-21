@@ -82,6 +82,8 @@ package "Services" {
   class AuthService {
     login(username, password)
   }
+  class JwtAuthGuard
+  class RolesGuard
   class ProductService
   class PartyService
   class MovementService {
@@ -99,6 +101,8 @@ PartyService ..> Supplier : manages
 PartyService ..> Counterparty : manages
 NotificationService ..> Notification : manages
 AuthService ..> User : verifies
+JwtAuthGuard ..> User : loads
+RolesGuard ..> User : checks role
 
 package "Command pattern" {
   interface StockCommand <<Command>> {

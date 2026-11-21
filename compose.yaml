@@ -29,6 +29,7 @@ services:
       DB_USER: ${POSTGRES_USER:-kursova}
       DB_PASSWORD: ${POSTGRES_PASSWORD:-kursova_demo_password}
       PORT: 3000
+      JWT_SECRET: ${JWT_SECRET:-kursova-demo-only-secret}
     ports:
       - "${BACKEND_PORT:-3000}:3000"
     healthcheck:
@@ -37,6 +38,19 @@ services:
       timeout: 5s
       retries: 10
       start_period: 20s
+
+  backend-test:
+    profiles: [test]
+    build:
+      context: ./backend
+      target: test
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DB_HOST: postgres
+      DB_USER: ${POSTGRES_USER:-kursova}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-kursova_demo_password}
 
   frontend:
     build: ./frontend

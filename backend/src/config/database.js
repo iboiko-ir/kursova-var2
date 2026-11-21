@@ -1,3 +1,4 @@
+import { entities } from '../database/entities';
 import { migrations } from '../database/migrations';
 
 export function databaseOptions() {
@@ -8,7 +9,7 @@ export function databaseOptions() {
     username: process.env.DB_USER || 'kursova',
     password: process.env.DB_PASSWORD || 'kursova_demo_password',
     database: process.env.DB_NAME || 'kursova',
-    entities: [],
+    entities,
     migrations,
     migrationsTableName: 'migrations',
     synchronize: false,

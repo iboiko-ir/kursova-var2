@@ -1,16 +1,13 @@
 import 'reflect-metadata';
 import { createDataSource } from './data-source';
-import { seeders } from './seeds';
+import { runSeeders } from './seeds/run';
 
 async function main() {
   const dataSource = createDataSource();
   await dataSource.initialize();
   try {
-    for (const seeder of seeders) {
-      await dataSource.transaction((manager) => seeder.run(manager));
-      console.log(`Seeder finished: ${seeder.name}`);
-    }
-    console.log(`Seeders run: ${seeders.length}`);
+    const count = await runSeeders(dataSource);
+    console.log(`Seeders run: ${count}`);
   } finally {
     await dataSource.destroy();
   }
