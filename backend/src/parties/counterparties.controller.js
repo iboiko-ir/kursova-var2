@@ -1,11 +1,5 @@
-import { Bind, Body, Controller, Dependencies, Get, Param, Patch, Post, Query } from '@nestjs/common';
-import {
-  ApiBearerAuth,
-  ApiCreatedResponse,
-  ApiOkResponse,
-  ApiOperation,
-  ApiTags,
-} from '@nestjs/swagger';
+import { Bind, Body, Controller, Delete, Dependencies, Get, HttpCode, Param, Patch, Post, Query } from '@nestjs/common';
+import { ApiBearerAuth, ApiCreatedResponse, ApiNoContentResponse, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ApiErrors } from '../common/api-errors';
 import { ParamTypes } from '../common/param-types';
 import { IdParamDto } from '../common/id-param.dto';
@@ -87,5 +81,17 @@ export class CounterpartiesController {
   @ApiErrors(400, 401, 403, 404)
   restore({ id }) {
     return this.partyService.setArchived(id, false);
+  }
+
+  @Delete(':id')
+  @HttpCode(204)
+  @Roles(ROLE_ADMIN)
+  @Bind(Param())
+  @ParamTypes(IdParamDto)
+  @ApiOperation({ summary: 'Delete a counterparty (admin)', description: 'Only a counterparty without documents can be deleted. Otherwise archive it.' })
+  @ApiNoContentResponse({ description: 'The record was deleted.' })
+  @ApiErrors(400, 401, 403, 404, 409)
+  delete({ id }) {
+    return this.partyService.delete(id);
   }
 }

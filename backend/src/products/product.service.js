@@ -117,6 +117,21 @@ export class ProductService {
     });
   }
 
+  async delete(productId) {
+    await this.dataSource.transaction(async (manager) => {
+      await this.findProduct(manager, productId);
+      const [{ lineCount }] = await manager.query(
+        'SELECT count(*)::int AS "lineCount" FROM stock_movement_lines WHERE product_id = $1',
+        [productId],
+      );
+      if (lineCount > 0) {
+        throw new ConflictException('This product has stock movements and cannot be deleted. Archive it instead.');
+      }
+      await manager.query('DELETE FROM notifications WHERE product_id = $1', [productId]);
+      await manager.getRepository(ProductSchema).delete({ id: productId });
+    });
+  }
+
   async findProduct(manager, productId) {
     const product = await manager
       .getRepository(ProductSchema)

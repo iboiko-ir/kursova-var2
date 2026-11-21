@@ -4,10 +4,11 @@ import { escapeLike } from '../common/page';
 const UNIQUE_VIOLATION = '23505';
 
 export class PartyService {
-  constructor(dataSource, entitySchema, partyLabel) {
+  constructor(dataSource, entitySchema, partyLabel, usages) {
     this.dataSource = dataSource;
     this.entitySchema = entitySchema;
     this.partyLabel = partyLabel;
+    this.usages = usages;
   }
 
   get repository() {
@@ -65,6 +66,27 @@ export class PartyService {
     const party = await this.get(partyId);
     party.archived = archived;
     return this.repository.save(party);
+  }
+
+  async delete(partyId) {
+    await this.dataSource.transaction(async (manager) => {
+      const party = await manager.getRepository(this.entitySchema).findOneBy({ id: partyId });
+      if (!party) {
+        throw new NotFoundException(`${this.partyLabel} ${partyId} was not found.`);
+      }
+      for (const usage of this.usages) {
+        const [{ usageCount }] = await manager.query(
+          `SELECT count(*)::int AS "usageCount" FROM ${usage.tableName} WHERE ${usage.columnName} = $1`,
+          [partyId],
+        );
+        if (usageCount > 0) {
+          throw new ConflictException(
+            `This ${this.partyLabel.toLowerCase()} is used in ${usage.description} and cannot be deleted. Archive it instead.`,
+          );
+        }
+      }
+      await manager.getRepository(this.entitySchema).delete({ id: partyId });
+    });
   }
 
   async saveOrReportDuplicate(saveOperation) {
