@@ -157,10 +157,10 @@ export default function ReportsPage() {
           {reportName === 'movement-dynamics' ? (
             <>
               <Field label="From (UTC date)">
-                <input type="date" value={dateFrom} onChange={(event) => setDateFrom(event.target.value)} required />
+                <input type="date" max={today()} value={dateFrom} onChange={(event) => setDateFrom(event.target.value)} required />
               </Field>
               <Field label="To (UTC date)">
-                <input type="date" value={dateTo} onChange={(event) => setDateTo(event.target.value)} required />
+                <input type="date" max={today()} value={dateTo} onChange={(event) => setDateTo(event.target.value)} required />
               </Field>
               <Field label="Product">
                 <select value={productId} onChange={(event) => setProductId(event.target.value)}>
@@ -175,7 +175,7 @@ export default function ReportsPage() {
             </>
           ) : (
             <Field label="As of (UTC date)">
-              <input type="date" value={date} onChange={(event) => setDate(event.target.value)} required />
+              <input type="date" max={today()} value={date} onChange={(event) => setDate(event.target.value)} required />
             </Field>
           )}
           <button type="submit" className="primary" disabled={submitting}>

@@ -9,3 +9,12 @@ export function parseUtcDay(text, field) {
   }
   return date;
 }
+
+export function parseReportDay(text, field) {
+  const date = parseUtcDay(text, field);
+  const today = new Date().toISOString().slice(0, 10);
+  if (text > today) {
+    throw new BadRequestException(`${field} must not be in the future. The stock of a future date is not known.`);
+  }
+  return date;
+}
