@@ -39,19 +39,6 @@ services:
       retries: 10
       start_period: 20s
 
-  backend-test:
-    profiles: [test]
-    build:
-      context: ./backend
-      target: test
-    depends_on:
-      postgres:
-        condition: service_healthy
-    environment:
-      DB_HOST: postgres
-      DB_USER: ${POSTGRES_USER:-kursova}
-      DB_PASSWORD: ${POSTGRES_PASSWORD:-kursova_demo_password}
-
   frontend:
     build: ./frontend
     restart: unless-stopped

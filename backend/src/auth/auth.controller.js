@@ -22,8 +22,8 @@ export class AuthController {
   @ApiOperation({ summary: 'Log in and receive an access token' })
   @ApiOkResponse({ type: LoginResponseDto })
   @ApiErrors(400, 401)
-  login(dto) {
-    return this.authService.login(dto.username, dto.password);
+  login(credentials) {
+    return this.authService.login(credentials.username, credentials.password);
   }
 
   @Get('me')

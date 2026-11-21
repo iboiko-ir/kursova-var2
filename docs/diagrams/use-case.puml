@@ -29,6 +29,7 @@ rectangle "kursova" {
   usecase "Movement dynamics" as UC_ReportDynamics
   usecase "Inventory valuation" as UC_ReportValuation
 
+  usecase "Create user" as UC_CreateUser
   usecase "Create and edit product" as UC_ManageProduct
   usecase "Set minimum stock threshold" as UC_Threshold
   usecase "Create and edit supplier" as UC_ManageSupplier
@@ -51,6 +52,7 @@ Operator --> UC_ReportAsOf
 Operator --> UC_ReportDynamics
 Operator --> UC_ReportValuation
 
+Admin --> UC_CreateUser
 Admin --> UC_ManageProduct
 Admin --> UC_Threshold
 Admin --> UC_ManageSupplier

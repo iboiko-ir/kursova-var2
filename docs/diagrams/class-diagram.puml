@@ -86,9 +86,15 @@ package "Services" {
   class AuthService {
     login(username, password)
   }
+  class UserService {
+    list(query)
+    create(newUser)
+  }
   class JwtAuthGuard
   class RolesGuard
-  class ProductService
+  class ProductService {
+    create(newProduct, user)
+  }
   class PartyService
   class MovementService {
     post(input, user)
@@ -106,10 +112,12 @@ package "Services" {
 
 MovementService ..> StockMovement : creates
 ProductService ..> Product : manages
+ProductService ..> MovementService : posts initial receipt
 PartyService ..> Supplier : manages
 PartyService ..> Counterparty : manages
 NotificationService ..> Notification : manages
 AuthService ..> User : verifies
+UserService ..> User : creates
 JwtAuthGuard ..> User : loads
 RolesGuard ..> User : checks role
 

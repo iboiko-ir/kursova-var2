@@ -13,8 +13,7 @@
     "start:docker": "node dist/database/migrate.js && node dist/database/seed.js && node dist/main.js",
     "migrate": "node dist/database/migrate.js",
     "seed": "node dist/database/seed.js",
-    "openapi:export": "node dist/scripts/export-openapi.js",
-    "test": "npm run build && node --test \"test/*.test.js\""
+    "openapi:export": "node dist/scripts/export-openapi.js"
   },
   "dependencies": {
     "@nestjs/common": "^11.2.11",

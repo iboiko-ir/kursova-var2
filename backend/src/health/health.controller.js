@@ -3,7 +3,7 @@ import { Public } from '../auth/decorators';
 import { ApiOkResponse, ApiOperation, ApiServiceUnavailableResponse, ApiTags } from '@nestjs/swagger';
 import { DataSource } from 'typeorm';
 
-const healthySchema = {
+const healthResponseSchema = {
   type: 'object',
   required: ['status', 'database'],
   properties: {
@@ -23,8 +23,8 @@ export class HealthController {
   @Public()
   @Get()
   @ApiOperation({ summary: 'Check API and database availability' })
-  @ApiOkResponse({ description: 'API and database are available.', schema: healthySchema })
-  @ApiServiceUnavailableResponse({ description: 'Database is not available.', schema: healthySchema })
+  @ApiOkResponse({ description: 'API and database are available.', schema: healthResponseSchema })
+  @ApiServiceUnavailableResponse({ description: 'Database is not available.', schema: healthResponseSchema })
   async check() {
     try {
       await this.dataSource.query('SELECT 1');

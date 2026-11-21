@@ -1,13 +1,13 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Pagination, Status } from './components.jsx';
-import { formatUtc } from './format.js';
-import { useList } from './hooks.js';
+import { Pagination, ListState } from './components.jsx';
+import { formatUtcDateTime } from './format.js';
+import { useApiData } from './hooks.js';
 
 export default function NotificationsPage() {
   const [status, setStatus] = useState('active');
   const [page, setPage] = useState(1);
-  const list = useList('/notifications', { status, page, limit: 25 });
+  const notificationList = useApiData('/notifications', { status, page, limit: 25 });
 
   return (
     <>
@@ -15,8 +15,9 @@ export default function NotificationsPage() {
         <h1>Notifications</h1>
       </div>
       <p className="muted">
-        A low-stock notification appears when the quantity is less than or equal to the minimum stock. It is updated
-        when stock changes and resolved when the quantity is above the minimum.
+        A low-stock notification appears when the quantity is less than or equal to the minimum stock. It resolves
+        automatically when the quantity becomes greater than the minimum stock: receive more goods, or ask an admin to
+        lower the minimum stock of the product. Archiving the product also resolves it.
       </p>
       <div className="toolbar">
         <label className="check">
@@ -34,7 +35,7 @@ export default function NotificationsPage() {
           </select>
         </label>
       </div>
-      <Status list={list} empty="No notifications.">
+      <ListState apiData={notificationList} emptyMessage="No notifications.">
         <div className="table-wrap">
           <table>
             <thead>
@@ -44,29 +45,33 @@ export default function NotificationsPage() {
                 <th>Product</th>
                 <th className="num">Quantity</th>
                 <th className="num">Min stock</th>
+                <th className="num">Receive at least</th>
                 <th>Updated</th>
                 <th>Resolved</th>
               </tr>
             </thead>
             <tbody>
-              {list.data?.items.map((item) => (
-                <tr key={item.id} className={item.status === 'resolved' ? 'archived' : undefined}>
-                  <td>{item.status === 'active' ? 'Low stock' : 'Resolved'}</td>
-                  <td>{item.product.sku}</td>
+              {notificationList.data?.items.map((notification) => (
+                <tr key={notification.id} className={notification.status === 'resolved' ? 'archived' : undefined}>
+                  <td>{notification.status === 'active' ? 'Low stock' : 'Resolved'}</td>
+                  <td>{notification.product.sku}</td>
                   <td>
-                    <Link to={`/movements?productId=${item.product.id}`}>{item.product.name}</Link>
+                    <Link to={`/movements?productId=${notification.product.id}`}>{notification.product.name}</Link>
                   </td>
-                  <td className="num">{item.quantity}</td>
-                  <td className="num">{item.minStock}</td>
-                  <td>{formatUtc(item.updatedAt)}</td>
-                  <td>{item.resolvedAt ? formatUtc(item.resolvedAt) : '-'}</td>
+                  <td className="num">{notification.quantity}</td>
+                  <td className="num">{notification.minStock}</td>
+                  <td className="num">
+                    {notification.status === 'active' ? notification.minStock - notification.quantity + 1 : '-'}
+                  </td>
+                  <td>{formatUtcDateTime(notification.updatedAt)}</td>
+                  <td>{notification.resolvedAt ? formatUtcDateTime(notification.resolvedAt) : '-'}</td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
-      </Status>
-      <Pagination data={list.data} page={page} onPage={setPage} />
+      </ListState>
+      <Pagination data={notificationList.data} page={page} onPageChange={setPage} />
     </>
   );
 }

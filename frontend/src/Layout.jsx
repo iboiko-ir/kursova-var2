@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
 import { NavLink, Navigate, Outlet, useLocation } from 'react-router-dom';
-import { api } from './api.js';
+import { apiRequest } from './api.js';
 import { useAuth } from './auth.jsx';
 
 export default function Layout() {
-  const { user, loading, logout } = useAuth();
+  const { user, loading, isAdmin, logout } = useAuth();
   const location = useLocation();
   const [active, setActive] = useState(null);
 
@@ -13,7 +13,7 @@ export default function Layout() {
       return undefined;
     }
     let current = true;
-    api('/notifications/summary')
+    apiRequest('/notifications/summary')
       .then((result) => current && setActive(result.active))
       .catch(() => current && setActive(null));
     return () => {
@@ -42,6 +42,7 @@ export default function Layout() {
           <NavLink to="/reports">Reports</NavLink>
           <NavLink to="/suppliers">Suppliers</NavLink>
           <NavLink to="/counterparties">Counterparties</NavLink>
+          {isAdmin && <NavLink to="/users">Users</NavLink>}
         </nav>
         <span className="spacer" />
         <span className="user">

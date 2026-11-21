@@ -1,4 +1,4 @@
-import { Bind, Body, Controller, Dependencies, Get, Param, Patch, Post, Query } from '@nestjs/common';
+import { Bind, Body, Controller, Dependencies, Get, Param, Patch, Post, Query, Req } from '@nestjs/common';
 import { ApiBearerAuth, ApiCreatedResponse, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ROLE_ADMIN, Roles } from '../auth/decorators';
 import { ApiErrors } from '../common/api-errors';
@@ -41,16 +41,17 @@ export class ProductsController {
 
   @Post()
   @Roles(ROLE_ADMIN)
-  @Bind(Body())
-  @ParamTypes(CreateProductDto)
+  @Bind(Body(), Req())
+  @ParamTypes(CreateProductDto, Object)
   @ApiOperation({
     summary: 'Create a product (admin)',
-    description: 'The quantity of a new product is zero. Stock is added only by goods receipts.',
+    description:
+      'The quantity of a new product is zero unless initialQuantity is given. Initial stock is recorded as a goods receipt in the same transaction. Later stock changes are made only by movements.',
   })
   @ApiCreatedResponse({ type: ProductDto })
   @ApiErrors(400, 401, 403, 409)
-  create(dto) {
-    return this.productService.create(dto);
+  create(newProduct, request) {
+    return this.productService.create(newProduct, request.user);
   }
 
   @Patch(':id')
@@ -60,8 +61,8 @@ export class ProductsController {
   @ApiOperation({ summary: 'Edit a product, including its minimum stock threshold (admin)' })
   @ApiOkResponse({ type: ProductDto })
   @ApiErrors(400, 401, 403, 404, 409)
-  update({ id }, dto) {
-    return this.productService.update(id, dto);
+  update({ id }, changes) {
+    return this.productService.update(id, changes);
   }
 
   @Post(':id/archive')

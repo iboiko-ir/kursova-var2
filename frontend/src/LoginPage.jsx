@@ -8,7 +8,7 @@ export default function LoginPage() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState(null);
-  const [busy, setBusy] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
   if (user) {
     return <Navigate to="/products" replace />;
@@ -16,13 +16,13 @@ export default function LoginPage() {
 
   async function submit(event) {
     event.preventDefault();
-    setBusy(true);
+    setSubmitting(true);
     setError(null);
     try {
       await login(username.trim(), password);
     } catch (caught) {
       setError(caught);
-      setBusy(false);
+      setSubmitting(false);
     }
   }
 
@@ -44,8 +44,8 @@ export default function LoginPage() {
             required
           />
         </Field>
-        <button type="submit" className="primary" disabled={busy}>
-          {busy ? 'Logging in...' : 'Log in'}
+        <button type="submit" className="primary" disabled={submitting}>
+          {submitting ? 'Logging in...' : 'Log in'}
         </button>
       </form>
     </main>

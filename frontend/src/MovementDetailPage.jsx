@@ -1,7 +1,7 @@
 import { Link, useParams } from 'react-router-dom';
 import { ErrorBox } from './components.jsx';
-import { DOCUMENT_TITLES, formatUtc, money2 } from './format.js';
-import { useList } from './hooks.js';
+import { DOCUMENT_TITLES, formatUtcDateTime, formatMoney } from './format.js';
+import { useApiData } from './hooks.js';
 
 function PartyRow({ label, party }) {
   if (!party) {
@@ -20,7 +20,7 @@ function PartyRow({ label, party }) {
 
 export default function MovementDetailPage() {
   const { id } = useParams();
-  const detail = useList(`/movements/${id}`, {});
+  const detail = useApiData(`/movements/${id}`, {});
   const movement = detail.data;
 
   return (
@@ -56,7 +56,7 @@ export default function MovementDetailPage() {
                 </tr>
                 <tr>
                   <th scope="row">Date and time</th>
-                  <td>{formatUtc(movement.postedAt)}</td>
+                  <td>{formatUtcDateTime(movement.postedAt)}</td>
                 </tr>
                 <PartyRow label="Supplier" party={movement.supplier} />
                 <PartyRow label="Counterparty" party={movement.counterparty} />
@@ -92,8 +92,8 @@ export default function MovementDetailPage() {
                     <td>{line.sku}</td>
                     <td>{line.productName}</td>
                     <td className="num">{line.quantity}</td>
-                    <td className="num">{money2(line.unitCost)}</td>
-                    <td className="num">{money2(line.value)}</td>
+                    <td className="num">{formatMoney(line.unitCost)}</td>
+                    <td className="num">{formatMoney(line.value)}</td>
                   </tr>
                 ))}
               </tbody>
@@ -102,7 +102,7 @@ export default function MovementDetailPage() {
                   <th colSpan={5} className="num">
                     Total
                   </th>
-                  <th className="num">{money2(movement.totalValue)}</th>
+                  <th className="num">{formatMoney(movement.totalValue)}</th>
                 </tr>
               </tfoot>
             </table>
