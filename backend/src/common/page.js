@@ -2,7 +2,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { Transform, Type } from 'class-transformer';
 import { IsBoolean, IsInt, IsOptional, IsString, Max, MaxLength, Min } from 'class-validator';
 
-export class PageQueryDto {
+export class PaginationDto {
   @ApiProperty({ type: Number, required: false, minimum: 1, default: 1 })
   @IsOptional()
   @Type(() => Number)
@@ -18,7 +18,9 @@ export class PageQueryDto {
   @Min(1)
   @Max(200)
   limit = 25;
+}
 
+export class PageQueryDto extends PaginationDto {
   @ApiProperty({ type: String, required: false, maxLength: 100, description: 'Case-insensitive text search.' })
   @IsOptional()
   @IsString()

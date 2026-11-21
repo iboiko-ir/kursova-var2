@@ -130,6 +130,9 @@ export class ProductDto {
   @ApiProperty({ type: Number, description: 'Current stock. It is zero until goods are received.' })
   quantity;
 
+  @ApiProperty({ type: String, example: '125.0000', description: 'Inventory value in UAH (weighted-average cost).' })
+  inventoryValue;
+
   @ApiProperty({ type: Boolean })
   archived;
 
