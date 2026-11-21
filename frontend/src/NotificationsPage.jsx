@@ -14,11 +14,7 @@ export default function NotificationsPage() {
       <div className="page-head">
         <h1>Notifications</h1>
       </div>
-      <p className="muted">
-        A low-stock notification appears when the quantity is less than or equal to the minimum stock. It resolves
-        automatically when the quantity becomes greater than the minimum stock: receive more goods, or ask an admin to
-        lower the minimum stock of the product. Archiving the product also resolves it.
-      </p>
+      <p className="hint">A notification is resolved automatically when the quantity becomes greater than the minimum stock.</p>
       <div className="toolbar">
         <label className="check">
           Show

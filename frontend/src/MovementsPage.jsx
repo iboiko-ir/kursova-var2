@@ -1,5 +1,5 @@
 import { Link, useSearchParams } from 'react-router-dom';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ErrorBox, Field, Pagination, ListState } from './components.jsx';
 import { MOVEMENT_LABELS, formatUtcDateTime, formatMoney } from './format.js';
 import { useApiData } from './hooks.js';
@@ -11,6 +11,11 @@ export default function MovementsPage() {
   const appliedFilters = Object.fromEntries(FILTERS.map((name) => [name, queryParameters.get(name) || '']));
   const page = Number(queryParameters.get('page') || 1);
   const [draftFilters, setDraftFilters] = useState(appliedFilters);
+  const queryString = queryParameters.toString();
+
+  useEffect(() => {
+    setDraftFilters(Object.fromEntries(FILTERS.map((name) => [name, queryParameters.get(name) || ''])));
+  }, [queryString]);
   const movementList = useApiData('/movements', { ...appliedFilters, page, limit: 25 });
 
   function apply(event) {
@@ -51,9 +56,6 @@ export default function MovementsPage() {
           </Link>
         </div>
       </div>
-      <p className="muted">
-        Posted movements are final: they cannot be edited, deleted or backdated. Dates are UTC calendar days.
-      </p>
 
       <form className="toolbar filters" onSubmit={apply}>
         <Field label="Type">

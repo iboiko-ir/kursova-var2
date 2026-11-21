@@ -88,11 +88,9 @@ function ProductForm({ initialProduct, suppliers, onSaved, onCancel }) {
           <input value={values.initialQuantity} inputMode="numeric" onChange={setValue('initialQuantity')} />
         </Field>
       )}
-      <p className="muted full">
-        {initialProduct.id
-          ? 'Quantity changes only through movements.'
-          : 'An initial quantity above zero is recorded as a goods receipt from the supplier at the catalog price. Later, quantity changes only through movements.'}
-      </p>
+      {!initialProduct.id && (
+        <p className="hint full">The initial quantity is posted as a goods receipt at the catalog price.</p>
+      )}
       <div className="actions full">
         <button type="submit" className="primary" disabled={submitting}>
           {submitting ? 'Saving...' : 'Save product'}
