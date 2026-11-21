@@ -1,9 +1,9 @@
-import { parseUtcDay } from '../common/dates';
+import { parseReportDay } from '../common/dates';
 
 // Strategy pattern: a shared query of two report strategies.
 // Quantity and value of each product are sums of ledger deltas up to the end of a UTC day.
 export async function ledgerBalances(dataSource, day) {
-  const startOfDay = parseUtcDay(day, 'date');
+  const startOfDay = parseReportDay(day, 'date');
   return dataSource.query(
     `SELECT line.product_id AS "productId",
             (array_agg(line.sku ORDER BY movement.posted_at DESC, line.id DESC))[1] AS sku,

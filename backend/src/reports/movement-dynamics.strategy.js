@@ -1,5 +1,5 @@
 import { BadRequestException } from '@nestjs/common';
-import { parseUtcDay } from '../common/dates';
+import { parseReportDay } from '../common/dates';
 import { ReportStrategy } from './report-strategy';
 
 const MAX_DAYS = 366;
@@ -15,8 +15,8 @@ export class MovementDynamicsStrategy extends ReportStrategy {
   }
 
   async generate({ dateFrom, dateTo, productId }) {
-    const firstDay = parseUtcDay(dateFrom, 'dateFrom');
-    const lastDay = parseUtcDay(dateTo, 'dateTo');
+    const firstDay = parseReportDay(dateFrom, 'dateFrom');
+    const lastDay = parseReportDay(dateTo, 'dateTo');
     if (firstDay > lastDay) {
       throw new BadRequestException('dateFrom must not be later than dateTo.');
     }
