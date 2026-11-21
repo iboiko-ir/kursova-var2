@@ -207,10 +207,20 @@ export const demoInventorySeed = {
     stockChangeSubject.subscribe(new LowStockObserver());
     const movementService = new MovementService(dataSource, stockChangeSubject);
 
-    const [{ total: movementCount }] = await manager.query('SELECT count(*)::int AS total FROM stock_movements');
+    // Only products without any movement get demo stock, so the seed can run again safely.
+    const existingSkus = new Set((await manager.query('SELECT sku FROM products')).map((product) => product.sku));
+    const skusWithHistory = new Set(
+      (
+        await manager.query(
+          'SELECT DISTINCT product.sku FROM stock_movement_lines line JOIN products product ON product.id = line.product_id',
+        )
+      ).map((product) => product.sku),
+    );
+    const isNewDocument = (lines) =>
+      lines.every((line) => existingSkus.has(line.sku) && !skusWithHistory.has(line.sku));
     const [operator] = await manager.query("SELECT id, username FROM users WHERE username = 'operator'");
 
-    if (movementCount === 0 && operator) {
+    if (operator) {
       const findProductId = async (sku) =>
         (await manager.query('SELECT id FROM products WHERE sku = $1', [sku]))[0].id;
       const findPartyId = async (tableName, name) =>
@@ -224,7 +234,7 @@ export const demoInventorySeed = {
           })),
         );
 
-      for (const receipt of RECEIPTS) {
+      for (const receipt of RECEIPTS.filter((document) => isNewDocument(document.lines))) {
         await movementService.post(
           {
             type: 'receipt',
@@ -234,7 +244,7 @@ export const demoInventorySeed = {
           operator,
         );
       }
-      for (const shipment of SHIPMENTS) {
+      for (const shipment of SHIPMENTS.filter((document) => isNewDocument(document.lines))) {
         await movementService.post(
           {
             type: 'shipment',
@@ -244,7 +254,7 @@ export const demoInventorySeed = {
           operator,
         );
       }
-      for (const writeOff of WRITE_OFFS) {
+      for (const writeOff of WRITE_OFFS.filter((document) => isNewDocument(document.lines))) {
         await movementService.post(
           { type: 'write_off', reason: writeOff.reason, lines: await toMovementLines(writeOff.lines) },
           operator,
