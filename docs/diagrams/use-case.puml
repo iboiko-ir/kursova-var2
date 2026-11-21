@@ -1,0 +1,67 @@
+@startuml use-case
+title kursova - Use Case diagram
+left to right direction
+skinparam shadowing false
+skinparam monochrome true
+skinparam packageStyle rectangle
+skinparam roundCorner 0
+
+actor Operator
+actor Admin
+
+Admin --|> Operator
+
+rectangle "kursova" {
+  usecase "Log in" as UC_Login
+
+  usecase "View products" as UC_ViewProducts
+  usecase "View suppliers and counterparties" as UC_ViewParties
+
+  usecase "Receive goods" as UC_Receive
+  usecase "Ship goods" as UC_Ship
+  usecase "Write off goods" as UC_WriteOff
+  usecase "View movements" as UC_ViewMovements
+  usecase "View and print document" as UC_Print
+
+  usecase "View low-stock notifications" as UC_Notifications
+
+  usecase "Inventory as of date" as UC_ReportAsOf
+  usecase "Movement dynamics" as UC_ReportDynamics
+  usecase "Inventory valuation" as UC_ReportValuation
+
+  usecase "Create and edit product" as UC_ManageProduct
+  usecase "Set minimum stock threshold" as UC_Threshold
+  usecase "Create and edit supplier" as UC_ManageSupplier
+  usecase "Create and edit counterparty" as UC_ManageCounterparty
+  usecase "Archive product or party" as UC_Archive
+
+  usecase "Check low stock" as UC_CheckLowStock
+}
+
+Operator --> UC_Login
+Operator --> UC_ViewProducts
+Operator --> UC_ViewParties
+Operator --> UC_Receive
+Operator --> UC_Ship
+Operator --> UC_WriteOff
+Operator --> UC_ViewMovements
+Operator --> UC_Print
+Operator --> UC_Notifications
+Operator --> UC_ReportAsOf
+Operator --> UC_ReportDynamics
+Operator --> UC_ReportValuation
+
+Admin --> UC_ManageProduct
+Admin --> UC_Threshold
+Admin --> UC_ManageSupplier
+Admin --> UC_ManageCounterparty
+Admin --> UC_Archive
+
+UC_Receive ..> UC_CheckLowStock : <<include>>
+UC_Ship ..> UC_CheckLowStock : <<include>>
+UC_WriteOff ..> UC_CheckLowStock : <<include>>
+UC_Threshold ..> UC_CheckLowStock : <<include>>
+UC_ManageProduct ..> UC_CheckLowStock : <<include>>
+UC_Archive ..> UC_CheckLowStock : <<include>>
+UC_Print ..> UC_ViewMovements : <<extend>>
+@enduml
