@@ -53,7 +53,7 @@ export class MovementsController {
   })
   @ApiCreatedResponse({ type: MovementDetailDto })
   @ApiErrors(400, 401, 409)
-  post(dto, request) {
-    return this.movementService.post(dto, request.user);
+  post(newMovement, request) {
+    return this.movementService.post(newMovement, request.user);
   }
 }

@@ -1,4 +1,4 @@
-import { fromUnits, mulDivRound, toUnits } from '../inventory/money';
+import { unitsToMoney, multiplyThenDivide, moneyToUnits } from '../inventory/money';
 import { ledgerBalances } from './ledger-balances';
 import { ReportStrategy } from './report-strategy';
 
@@ -11,15 +11,15 @@ export class InventoryAsOfStrategy extends ReportStrategy {
 
   async generate({ date }) {
     const balances = await ledgerBalances(this.dataSource, date);
-    const items = balances.map((row) => {
-      const value = toUnits(row.value);
+    const items = balances.map((balance) => {
+      const value = moneyToUnits(balance.value);
       return {
-        productId: row.productId,
-        sku: row.sku,
-        name: row.name,
-        quantity: row.quantity,
-        unitCost: row.quantity > 0 ? fromUnits(mulDivRound(value, 1n, BigInt(row.quantity))) : fromUnits(0n),
-        value: fromUnits(value),
+        productId: balance.productId,
+        sku: balance.sku,
+        name: balance.name,
+        quantity: balance.quantity,
+        unitCost: balance.quantity > 0 ? unitsToMoney(multiplyThenDivide(value, 1n, BigInt(balance.quantity))) : unitsToMoney(0n),
+        value: unitsToMoney(value),
       };
     });
     return { date, items };

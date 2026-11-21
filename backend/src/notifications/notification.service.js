@@ -17,28 +17,28 @@ export class NotificationService {
     if (status !== 'all') {
       query.where('notification.status = :status', { status });
     }
-    const [rows, total] = await query
+    const [notifications, total] = await query
       .orderBy('notification.status', 'ASC')
       .addOrderBy('notification.updatedAt', 'DESC')
       .addOrderBy('notification.id', 'DESC')
       .skip((page - 1) * limit)
       .take(limit)
       .getManyAndCount();
-    const items = rows.map((row) => ({
-      id: row.id,
-      type: row.type,
-      status: row.status,
+    const items = notifications.map((notification) => ({
+      id: notification.id,
+      type: notification.type,
+      status: notification.status,
       product: {
-        id: row.product.id,
-        name: row.product.name,
-        sku: row.product.sku,
-        archived: row.product.archived,
+        id: notification.product.id,
+        name: notification.product.name,
+        sku: notification.product.sku,
+        archived: notification.product.archived,
       },
-      quantity: row.quantity,
-      minStock: row.minStock,
-      createdAt: row.createdAt,
-      updatedAt: row.updatedAt,
-      resolvedAt: row.resolvedAt,
+      quantity: notification.quantity,
+      minStock: notification.minStock,
+      createdAt: notification.createdAt,
+      updatedAt: notification.updatedAt,
+      resolvedAt: notification.resolvedAt,
     }));
     return { items, total, page, limit };
   }

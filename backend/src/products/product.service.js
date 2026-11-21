@@ -2,11 +2,13 @@ import { BadRequestException, ConflictException, Dependencies, Injectable, NotFo
 import { DataSource } from 'typeorm';
 import { escapeLike } from '../common/page';
 import { ProductSchema, SupplierSchema } from '../database/entities';
+import { MovementService } from '../inventory/movement.service';
 import { StockChangeSubject } from '../inventory/stock-change.subject';
 
 const UNIQUE_VIOLATION = '23505';
+const EDITABLE_FIELDS = ['name', 'sku', 'supplierId', 'catalogPrice', 'minStock'];
 
-function toDto(product) {
+function toProductResponse(product) {
   return {
     id: product.id,
     name: product.name,
@@ -27,11 +29,12 @@ function toDto(product) {
 }
 
 @Injectable()
-@Dependencies(DataSource, StockChangeSubject)
+@Dependencies(DataSource, StockChangeSubject, MovementService)
 export class ProductService {
-  constructor(dataSource, subject) {
+  constructor(dataSource, stockChangeSubject, movementService) {
     this.dataSource = dataSource;
-    this.subject = subject;
+    this.stockChangeSubject = stockChangeSubject;
+    this.movementService = movementService;
   }
 
   async list({ page, limit, search, includeArchived, supplierId }) {
@@ -50,69 +53,74 @@ export class ProductService {
         search: `%${escapeLike(search)}%`,
       });
     }
-    const [items, total] = await query
+    const [products, total] = await query
       .orderBy('product.name', 'ASC')
       .addOrderBy('product.id', 'ASC')
       .skip((page - 1) * limit)
       .take(limit)
       .getManyAndCount();
-    return { items: items.map(toDto), total, page, limit };
+    return { items: products.map(toProductResponse), total, page, limit };
   }
 
-  async get(id) {
-    return toDto(await this.load(this.dataSource.manager, id));
+  async get(productId) {
+    return toProductResponse(await this.findProduct(this.dataSource.manager, productId));
   }
 
-  async create({ name, sku, supplierId, catalogPrice, minStock }) {
-    return this.write(async (manager) => {
+  async create({ name, sku, supplierId, catalogPrice, minStock, initialQuantity }, user) {
+    return this.runInTransaction(async (manager) => {
       await this.requireActiveSupplier(manager, supplierId);
-      const repository = manager.getRepository(ProductSchema);
-      const saved = await repository.save(repository.create({ name, sku, supplierId, catalogPrice, minStock }));
-      await this.subject.notify({ manager }, saved.id);
-      return toDto(await this.load(manager, saved.id));
+      const productRepository = manager.getRepository(ProductSchema);
+      const savedProduct = await productRepository.save(
+        productRepository.create({ name, sku, supplierId, catalogPrice, minStock }),
+      );
+      if (initialQuantity > 0) {
+        await this.movementService.postInTransaction(
+          manager,
+          { type: 'receipt', supplierId, lines: [{ productId: savedProduct.id, quantity: initialQuantity }] },
+          user,
+        );
+      } else {
+        await this.stockChangeSubject.notify({ manager }, savedProduct.id);
+      }
+      return toProductResponse(await this.findProduct(manager, savedProduct.id));
     });
   }
 
-  async update(id, changes) {
-    const fields = ['name', 'sku', 'supplierId', 'catalogPrice', 'minStock'].filter(
-      (field) => changes[field] !== undefined,
-    );
-    if (fields.length === 0) {
+  async update(productId, changes) {
+    const changedFields = EDITABLE_FIELDS.filter((field) => changes[field] !== undefined);
+    if (changedFields.length === 0) {
       throw new BadRequestException('At least one field must be provided.');
     }
-    return this.write(async (manager) => {
-      const product = await this.load(manager, id);
+    return this.runInTransaction(async (manager) => {
+      const product = await this.findProduct(manager, productId);
       if (changes.supplierId !== undefined && changes.supplierId !== product.supplierId) {
         await this.requireActiveSupplier(manager, changes.supplierId);
       }
-      const repository = manager.getRepository(ProductSchema);
-      await repository.update(
-        { id },
-        Object.fromEntries(fields.map((field) => [field, changes[field]])),
-      );
-      await this.subject.notify({ manager }, id);
-      return toDto(await this.load(manager, id));
+      const newValues = Object.fromEntries(changedFields.map((field) => [field, changes[field]]));
+      await manager.getRepository(ProductSchema).update({ id: productId }, newValues);
+      await this.stockChangeSubject.notify({ manager }, productId);
+      return toProductResponse(await this.findProduct(manager, productId));
     });
   }
 
-  async setArchived(id, archived) {
-    return this.write(async (manager) => {
-      const product = await this.load(manager, id);
+  async setArchived(productId, archived) {
+    return this.runInTransaction(async (manager) => {
+      const product = await this.findProduct(manager, productId);
       if (!archived && product.supplier.archived) {
         throw new BadRequestException('The supplier of this product is archived. Restore the supplier first.');
       }
-      await manager.getRepository(ProductSchema).update({ id }, { archived });
-      await this.subject.notify({ manager }, id);
-      return toDto(await this.load(manager, id));
+      await manager.getRepository(ProductSchema).update({ id: productId }, { archived });
+      await this.stockChangeSubject.notify({ manager }, productId);
+      return toProductResponse(await this.findProduct(manager, productId));
     });
   }
 
-  async load(manager, id) {
+  async findProduct(manager, productId) {
     const product = await manager
       .getRepository(ProductSchema)
-      .findOne({ where: { id }, relations: { supplier: true } });
+      .findOne({ where: { id: productId }, relations: { supplier: true } });
     if (!product) {
-      throw new NotFoundException(`Product ${id} was not found.`);
+      throw new NotFoundException(`Product ${productId} was not found.`);
     }
     return product;
   }
@@ -124,7 +132,7 @@ export class ProductService {
     }
   }
 
-  async write(operation) {
+  async runInTransaction(operation) {
     try {
       return await this.dataSource.transaction(operation);
     } catch (error) {

@@ -7,7 +7,7 @@ import { StockChangeSubject } from './stock-change.subject';
 @Module({
   controllers: [MovementsController],
   providers: [StockChangeSubject, LowStockObserver, MovementService],
-  exports: [StockChangeSubject],
+  exports: [StockChangeSubject, MovementService],
 })
 @Dependencies(StockChangeSubject, LowStockObserver)
 export class InventoryModule {

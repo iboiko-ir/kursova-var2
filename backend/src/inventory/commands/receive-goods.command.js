@@ -1,5 +1,5 @@
 import { BadRequestException } from '@nestjs/common';
-import { fromUnits, toUnits } from '../money';
+import { unitsToMoney, moneyToUnits } from '../money';
 import { notifyStockChanged, postLedgerLine, postMovementHeader } from './ledger';
 import { StockCommand } from './stock-command';
 
@@ -11,10 +11,10 @@ export class ReceiveGoodsCommand extends StockCommand {
     }
     await postMovementHeader(context.manager, movement);
     for (const { product, quantity, unitCost } of movement.lines) {
-      const cost = toUnits(unitCost ?? product.catalogPrice);
+      const cost = moneyToUnits(unitCost ?? product.catalogPrice);
       await postLedgerLine(context.manager, movement.id, product, {
         quantity,
-        unitCost: fromUnits(cost),
+        unitCost: unitsToMoney(cost),
         quantityDelta: quantity,
         valueDelta: cost * BigInt(quantity),
       });

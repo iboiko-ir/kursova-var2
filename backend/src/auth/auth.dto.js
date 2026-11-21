@@ -1,8 +1,10 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { Transform } from 'class-transformer';
 import { IsString, MaxLength, MinLength } from 'class-validator';
 
 export class LoginDto {
   @ApiProperty({ type: String, maxLength: 50, example: 'operator' })
+  @Transform(({ value }) => (typeof value === 'string' ? value.trim().toLowerCase() : value))
   @IsString()
   @MinLength(1)
   @MaxLength(50)

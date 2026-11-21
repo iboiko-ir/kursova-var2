@@ -4,14 +4,14 @@ import { escapeLike } from '../common/page';
 const UNIQUE_VIOLATION = '23505';
 
 export class PartyService {
-  constructor(dataSource, schema, label) {
+  constructor(dataSource, entitySchema, partyLabel) {
     this.dataSource = dataSource;
-    this.schema = schema;
-    this.label = label;
+    this.entitySchema = entitySchema;
+    this.partyLabel = partyLabel;
   }
 
   get repository() {
-    return this.dataSource.getRepository(this.schema);
+    return this.dataSource.getRepository(this.entitySchema);
   }
 
   async list({ page, limit, search, includeArchived }) {
@@ -20,35 +20,35 @@ export class PartyService {
       query.andWhere('party.archived = false');
     }
     if (search) {
-      query.andWhere("(party.name ILIKE :search OR party.contactDetails ILIKE :search)", {
+      query.andWhere('(party.name ILIKE :search OR party.contactDetails ILIKE :search)', {
         search: `%${escapeLike(search)}%`,
       });
     }
-    const [items, total] = await query
+    const [parties, total] = await query
       .orderBy('party.name', 'ASC')
       .addOrderBy('party.id', 'ASC')
       .skip((page - 1) * limit)
       .take(limit)
       .getManyAndCount();
-    return { items, total, page, limit };
+    return { items: parties, total, page, limit };
   }
 
-  async get(id) {
-    const party = await this.repository.findOneBy({ id });
+  async get(partyId) {
+    const party = await this.repository.findOneBy({ id: partyId });
     if (!party) {
-      throw new NotFoundException(`${this.label} ${id} was not found.`);
+      throw new NotFoundException(`${this.partyLabel} ${partyId} was not found.`);
     }
     return party;
   }
 
   async create({ name, contactDetails }) {
-    return this.save(() =>
+    return this.saveOrReportDuplicate(() =>
       this.repository.save(this.repository.create({ name, contactDetails: contactDetails || null })),
     );
   }
 
-  async update(id, changes) {
-    const party = await this.get(id);
+  async update(partyId, changes) {
+    const party = await this.get(partyId);
     if (changes.name === undefined && changes.contactDetails === undefined) {
       throw new BadRequestException('At least one field must be provided.');
     }
@@ -58,21 +58,21 @@ export class PartyService {
     if (changes.contactDetails !== undefined) {
       party.contactDetails = changes.contactDetails || null;
     }
-    return this.save(() => this.repository.save(party));
+    return this.saveOrReportDuplicate(() => this.repository.save(party));
   }
 
-  async setArchived(id, archived) {
-    const party = await this.get(id);
+  async setArchived(partyId, archived) {
+    const party = await this.get(partyId);
     party.archived = archived;
     return this.repository.save(party);
   }
 
-  async save(operation) {
+  async saveOrReportDuplicate(saveOperation) {
     try {
-      return await operation();
+      return await saveOperation();
     } catch (error) {
       if (error.code === UNIQUE_VIOLATION) {
-        throw new ConflictException(`${this.label} with this name already exists.`);
+        throw new ConflictException(`${this.partyLabel} with this name already exists.`);
       }
       throw error;
     }

@@ -48,6 +48,21 @@ export class CreateProductDto {
   @Min(0)
   @Max(1000000)
   minStock;
+
+  @ApiProperty({
+    type: Number,
+    required: false,
+    minimum: 0,
+    maximum: 1000000,
+    default: 0,
+    description:
+      'Initial stock in whole units. A value above zero is recorded as a goods receipt from the supplier at the catalog price.',
+  })
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  @Max(1000000)
+  initialQuantity = 0;
 }
 
 export class UpdateProductDto {

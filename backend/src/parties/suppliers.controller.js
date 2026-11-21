@@ -21,8 +21,8 @@ const SupplierPage = pageOf(PartyDto, 'SupplierPage');
 @Controller('suppliers')
 @Dependencies(SUPPLIER_SERVICE)
 export class SuppliersController {
-  constructor(service) {
-    this.service = service;
+  constructor(partyService) {
+    this.partyService = partyService;
   }
 
   @Get()
@@ -32,7 +32,7 @@ export class SuppliersController {
   @ApiOkResponse({ type: SupplierPage })
   @ApiErrors(400, 401)
   list(query) {
-    return this.service.list(query);
+    return this.partyService.list(query);
   }
 
   @Get(':id')
@@ -42,7 +42,7 @@ export class SuppliersController {
   @ApiOkResponse({ type: PartyDto })
   @ApiErrors(400, 401, 404)
   get({ id }) {
-    return this.service.get(id);
+    return this.partyService.get(id);
   }
 
   @Post()
@@ -52,8 +52,8 @@ export class SuppliersController {
   @ApiOperation({ summary: 'Create a supplier (admin)' })
   @ApiCreatedResponse({ type: PartyDto })
   @ApiErrors(400, 401, 403, 409)
-  create(dto) {
-    return this.service.create(dto);
+  create(newParty) {
+    return this.partyService.create(newParty);
   }
 
   @Patch(':id')
@@ -63,8 +63,8 @@ export class SuppliersController {
   @ApiOperation({ summary: 'Edit a supplier (admin)' })
   @ApiOkResponse({ type: PartyDto })
   @ApiErrors(400, 401, 403, 404, 409)
-  update({ id }, dto) {
-    return this.service.update(id, dto);
+  update({ id }, changes) {
+    return this.partyService.update(id, changes);
   }
 
   @Post(':id/archive')
@@ -75,7 +75,7 @@ export class SuppliersController {
   @ApiCreatedResponse({ type: PartyDto })
   @ApiErrors(400, 401, 403, 404)
   archive({ id }) {
-    return this.service.setArchived(id, true);
+    return this.partyService.setArchived(id, true);
   }
 
   @Post(':id/restore')
@@ -86,6 +86,6 @@ export class SuppliersController {
   @ApiCreatedResponse({ type: PartyDto })
   @ApiErrors(400, 401, 403, 404)
   restore({ id }) {
-    return this.service.setArchived(id, false);
+    return this.partyService.setArchived(id, false);
   }
 }

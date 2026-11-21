@@ -1,4 +1,4 @@
-import { fromUnits, toUnits } from '../inventory/money';
+import { unitsToMoney, moneyToUnits } from '../inventory/money';
 import { ledgerBalances } from './ledger-balances';
 import { ReportStrategy } from './report-strategy';
 
@@ -13,12 +13,12 @@ export class InventoryValuationStrategy extends ReportStrategy {
     const balances = await ledgerBalances(this.dataSource, date);
     let total = 0n;
     const items = balances
-      .filter((row) => row.quantity > 0)
-      .map((row) => {
-        const value = toUnits(row.value);
+      .filter((balance) => balance.quantity > 0)
+      .map((balance) => {
+        const value = moneyToUnits(balance.value);
         total += value;
-        return { productId: row.productId, sku: row.sku, name: row.name, quantity: row.quantity, value: fromUnits(value) };
+        return { productId: balance.productId, sku: balance.sku, name: balance.name, quantity: balance.quantity, value: unitsToMoney(value) };
       });
-    return { date, items, totalValue: fromUnits(total) };
+    return { date, items, totalValue: unitsToMoney(total) };
   }
 }

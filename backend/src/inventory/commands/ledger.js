@@ -1,18 +1,18 @@
 import { ConflictException } from '@nestjs/common';
-import { fromUnits, mulDivRound, toUnits } from '../money';
+import { unitsToMoney, multiplyThenDivide, moneyToUnits } from '../money';
 
-const NUMBERING = {
+const DOCUMENT_NUMBERING = {
   receipt: ['movement_receipt_seq', 'RN'],
   shipment: ['movement_shipment_seq', 'SN'],
   write_off: ['movement_write_off_seq', 'WO'],
 };
 
 export async function postMovementHeader(manager, movement) {
-  const [sequence, prefix] = NUMBERING[movement.type];
+  const [sequence, prefix] = DOCUMENT_NUMBERING[movement.type];
   const [{ next }] = await manager.query(`SELECT nextval('${sequence}') AS next`);
   const number = `${prefix}-${String(next).padStart(6, '0')}`;
   const { supplier, counterparty, user } = movement;
-  const [row] = await manager.query(
+  const [insertedMovement] = await manager.query(
     `INSERT INTO stock_movements
        (number, type, supplier_id, supplier_name, supplier_details,
         counterparty_id, counterparty_name, counterparty_details, reason, created_by_id, created_by_name)
@@ -32,23 +32,23 @@ export async function postMovementHeader(manager, movement) {
       user.username,
     ],
   );
-  movement.id = row.id;
+  movement.id = insertedMovement.id;
   movement.number = number;
 }
 
 export async function postLedgerLine(manager, movementId, product, { quantity, unitCost, quantityDelta, valueDelta }) {
   const newQuantity = product.quantity + quantityDelta;
-  const newValue = toUnits(product.inventoryValue) + valueDelta;
+  const newValue = moneyToUnits(product.inventoryValue) + valueDelta;
   await manager.query('UPDATE products SET quantity = $2, inventory_value = $3, updated_at = now() WHERE id = $1', [
     product.id,
     newQuantity,
-    fromUnits(newValue),
+    unitsToMoney(newValue),
   ]);
   await manager.query(
     `INSERT INTO stock_movement_lines
        (movement_id, product_id, product_name, sku, quantity, unit_cost, quantity_delta, value_delta)
      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
-    [movementId, product.id, product.name, product.sku, quantity, unitCost, quantityDelta, fromUnits(valueDelta)],
+    [movementId, product.id, product.name, product.sku, quantity, unitCost, quantityDelta, unitsToMoney(valueDelta)],
   );
 }
 
@@ -69,11 +69,11 @@ export async function removeStock(context, movement) {
   }
   await postMovementHeader(context.manager, movement);
   for (const { product, quantity } of movement.lines) {
-    const value = toUnits(product.inventoryValue);
-    const valueOut = quantity === product.quantity ? value : mulDivRound(value, BigInt(quantity), BigInt(product.quantity));
+    const value = moneyToUnits(product.inventoryValue);
+    const valueOut = quantity === product.quantity ? value : multiplyThenDivide(value, BigInt(quantity), BigInt(product.quantity));
     await postLedgerLine(context.manager, movement.id, product, {
       quantity,
-      unitCost: fromUnits(mulDivRound(value, 1n, BigInt(product.quantity))),
+      unitCost: unitsToMoney(multiplyThenDivide(value, 1n, BigInt(product.quantity))),
       quantityDelta: -quantity,
       valueDelta: -valueOut,
     });
