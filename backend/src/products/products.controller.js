@@ -1,5 +1,5 @@
-import { Bind, Body, Controller, Dependencies, Get, Param, Patch, Post, Query, Req } from '@nestjs/common';
-import { ApiBearerAuth, ApiCreatedResponse, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { Bind, Body, Controller, Delete, Dependencies, Get, HttpCode, Param, Patch, Post, Query, Req } from '@nestjs/common';
+import { ApiBearerAuth, ApiCreatedResponse, ApiNoContentResponse, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ROLE_ADMIN, Roles } from '../auth/decorators';
 import { ApiErrors } from '../common/api-errors';
 import { ParamTypes } from '../common/param-types';
@@ -88,5 +88,17 @@ export class ProductsController {
   @ApiErrors(400, 401, 403, 404)
   restore({ id }) {
     return this.productService.setArchived(id, false);
+  }
+
+  @Delete(':id')
+  @HttpCode(204)
+  @Roles(ROLE_ADMIN)
+  @Bind(Param())
+  @ParamTypes(IdParamDto)
+  @ApiOperation({ summary: 'Delete a product (admin)', description: 'Only a product without stock movements can be deleted. Otherwise archive it.' })
+  @ApiNoContentResponse({ description: 'The record was deleted.' })
+  @ApiErrors(400, 401, 403, 404, 409)
+  delete({ id }) {
+    return this.productService.delete(id);
   }
 }

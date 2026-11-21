@@ -71,6 +71,19 @@ export default function PartiesPage({ title, singular, path }) {
   const debouncedSearch = useDebouncedValue(search);
   const partyList = useApiData(path, { page, limit: 25, search: debouncedSearch.trim(), includeArchived });
 
+  async function deleteParty(party) {
+    if (!window.confirm(`Delete ${singular} "${party.name}"? This cannot be undone.`)) {
+      return;
+    }
+    setActionError(null);
+    try {
+      await apiRequest(`${path}/${party.id}`, { method: 'DELETE' });
+      partyList.reload();
+    } catch (caught) {
+      setActionError(caught);
+    }
+  }
+
   async function toggleArchive(party) {
     const action = party.archived ? 'restore' : 'archive';
     if (!party.archived && !window.confirm(`Archive ${singular} "${party.name}"? Its history is kept.`)) {
@@ -160,6 +173,9 @@ export default function PartiesPage({ title, singular, path }) {
                       </button>
                       <button type="button" onClick={() => toggleArchive(party)}>
                         {party.archived ? 'Restore' : 'Archive'}
+                      </button>
+                      <button type="button" onClick={() => deleteParty(party)}>
+                        Delete
                       </button>
                     </td>
                   )}

@@ -11,12 +11,17 @@ import { SuppliersController } from './suppliers.controller';
   providers: [
     {
       provide: SUPPLIER_SERVICE,
-      useFactory: (dataSource) => new PartyService(dataSource, SupplierSchema, 'Supplier'),
+      useFactory: (dataSource) => new PartyService(dataSource, SupplierSchema, 'Supplier', [
+          { tableName: 'products', columnName: 'supplier_id', description: 'products' },
+          { tableName: 'stock_movements', columnName: 'supplier_id', description: 'posted documents' },
+        ]),
       inject: [DataSource],
     },
     {
       provide: COUNTERPARTY_SERVICE,
-      useFactory: (dataSource) => new PartyService(dataSource, CounterpartySchema, 'Counterparty'),
+      useFactory: (dataSource) => new PartyService(dataSource, CounterpartySchema, 'Counterparty', [
+          { tableName: 'stock_movements', columnName: 'counterparty_id', description: 'posted documents' },
+        ]),
       inject: [DataSource],
     },
   ],

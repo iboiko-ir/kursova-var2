@@ -1,10 +1,11 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
-import { IsIn, IsString, Matches, MaxLength, MinLength } from 'class-validator';
+import { IsIn, IsOptional, IsString, Matches, MaxLength, MinLength } from 'class-validator';
 import { ROLE_ADMIN, ROLE_OPERATOR } from '../auth/decorators';
 
 const USER_ROLES = [ROLE_ADMIN, ROLE_OPERATOR];
 const USERNAME_PATTERN = /^[a-z0-9][a-z0-9._-]{2,49}$/;
+const USERNAME_MESSAGE = 'username must contain 3-50 lower case letters, digits, dots, hyphens or underscores';
 
 const trimAndLowercase = ({ value }) => (typeof value === 'string' ? value.trim().toLowerCase() : value);
 
@@ -18,9 +19,7 @@ export class CreateUserDto {
   })
   @Transform(trimAndLowercase)
   @IsString()
-  @Matches(USERNAME_PATTERN, {
-    message: 'username must contain 3-50 lower case letters, digits, dots, hyphens or underscores',
-  })
+  @Matches(USERNAME_PATTERN, { message: USERNAME_MESSAGE })
   username;
 
   @ApiProperty({ type: String, minLength: 5, maxLength: 100, format: 'password' })
@@ -30,6 +29,34 @@ export class CreateUserDto {
   password;
 
   @ApiProperty({ type: String, enum: USER_ROLES })
+  @IsIn(USER_ROLES)
+  role;
+}
+
+export class UpdateUserDto {
+  @ApiProperty({ type: String, required: false, minLength: 3, maxLength: 50 })
+  @IsOptional()
+  @Transform(trimAndLowercase)
+  @IsString()
+  @Matches(USERNAME_PATTERN, { message: USERNAME_MESSAGE })
+  username;
+
+  @ApiProperty({
+    type: String,
+    required: false,
+    minLength: 5,
+    maxLength: 100,
+    format: 'password',
+    description: 'New password. Leave it out to keep the current password.',
+  })
+  @IsOptional()
+  @IsString()
+  @MinLength(5)
+  @MaxLength(100)
+  password;
+
+  @ApiProperty({ type: String, required: false, enum: USER_ROLES })
+  @IsOptional()
   @IsIn(USER_ROLES)
   role;
 }
