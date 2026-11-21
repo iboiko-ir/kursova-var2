@@ -45,15 +45,17 @@ package "Domain" {
     type : receipt | shipment | write_off
     postedAt : UTC
     reason
-    supplierSnapshot
-    counterpartySnapshot
+    supplierName
+    supplierDetails
+    counterpartyName
+    counterpartyDetails
     createdByName
   }
 
   class StockMovementLine {
     id
-    productNameSnapshot
-    skuSnapshot
+    productName
+    sku
     quantity
     unitCost
     quantityDelta
@@ -67,6 +69,7 @@ package "Domain" {
     minStock
     status : active | resolved
     createdAt
+    updatedAt
     resolvedAt
   }
 }
