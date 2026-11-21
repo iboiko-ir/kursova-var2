@@ -1,15 +1,3 @@
-# Local assistant files
-CLAUDE.md
-claude.md
-CLAUDE.local.md
-AGENTS.md
-.claude/
-.codex/
-.ai-local/
-requirements.md
-reqirments.md
-progress.md
-
 # Dependencies and build output
 node_modules/
 dist/
@@ -20,15 +8,16 @@ coverage/
 *.log
 npm-debug.log*
 
-# Secrets
+# Environment files
 .env
 .env.*
 !.env.example
+
+# Exported OpenAPI file
+openapi.json
 
 # OS and editor
 .DS_Store
 Thumbs.db
 .idea/
-
-# Exported OpenAPI file (the live /api/openapi.json is the source)
-openapi.json
+.vscode/
