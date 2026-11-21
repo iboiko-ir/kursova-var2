@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { api } from './api.js';
+import { apiRequest } from './api.js';
 import { ErrorBox, Field } from './components.jsx';
-import { money2 } from './format.js';
-import { useList } from './hooks.js';
+import { formatMoney } from './format.js';
+import { useApiData } from './hooks.js';
 
 const today = () => new Date().toISOString().slice(0, 10);
 const daysAgo = (days) => new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
@@ -32,8 +32,8 @@ function AsOfResult({ report }) {
               <td>{item.sku}</td>
               <td>{item.name}</td>
               <td className="num">{item.quantity}</td>
-              <td className="num">{money2(item.unitCost)}</td>
-              <td className="num">{money2(item.value)}</td>
+              <td className="num">{formatMoney(item.unitCost)}</td>
+              <td className="num">{formatMoney(item.value)}</td>
             </tr>
           ))}
         </tbody>
@@ -60,7 +60,7 @@ function ValuationResult({ report }) {
               <td>{item.sku}</td>
               <td>{item.name}</td>
               <td className="num">{item.quantity}</td>
-              <td className="num">{money2(item.value)}</td>
+              <td className="num">{formatMoney(item.value)}</td>
             </tr>
           ))}
         </tbody>
@@ -69,7 +69,7 @@ function ValuationResult({ report }) {
             <th colSpan={3} className="num">
               Total inventory value
             </th>
-            <th className="num">{money2(report.totalValue)}</th>
+            <th className="num">{formatMoney(report.totalValue)}</th>
           </tr>
         </tfoot>
       </table>
@@ -113,27 +113,27 @@ function DynamicsResult({ report }) {
 }
 
 export default function ReportsPage() {
-  const products = useList('/products', { limit: 200, includeArchived: true });
-  const [name, setName] = useState('inventory-as-of');
+  const products = useApiData('/products', { limit: 200, includeArchived: true });
+  const [reportName, setReportName] = useState('inventory-as-of');
   const [date, setDate] = useState(today());
   const [dateFrom, setDateFrom] = useState(daysAgo(30));
   const [dateTo, setDateTo] = useState(today());
   const [productId, setProductId] = useState('');
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
-  const [busy, setBusy] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
-  async function run(event) {
+  async function runReport(event) {
     event.preventDefault();
-    setBusy(true);
+    setSubmitting(true);
     setError(null);
-    const params = name === 'movement-dynamics' ? { dateFrom, dateTo, productId } : { date };
+    const reportParameters = reportName === 'movement-dynamics' ? { dateFrom, dateTo, productId } : { date };
     try {
-      setResult({ name, report: await api(`/reports/${name}`, { params }) });
+      setResult({ reportName, report: await apiRequest(`/reports/${reportName}`, { params: reportParameters }) });
     } catch (caught) {
       setError(caught);
     }
-    setBusy(false);
+    setSubmitting(false);
   }
 
   return (
@@ -141,14 +141,14 @@ export default function ReportsPage() {
       <div className="page-head no-print">
         <h1>Reports</h1>
       </div>
-      <form className="panel form wide no-print" onSubmit={run}>
+      <form className="panel form wide no-print" onSubmit={runReport}>
         <p className="muted">
           Dates are UTC calendar days. A report for a date includes the whole day. Values are inventory costs in UAH.
         </p>
         <ErrorBox messages={error?.messages} />
         <div className="filters toolbar">
           <Field label="Report">
-            <select value={name} onChange={(event) => setName(event.target.value)}>
+            <select value={reportName} onChange={(event) => setReportName(event.target.value)}>
               {Object.entries(REPORTS).map(([value, label]) => (
                 <option key={value} value={value}>
                   {label}
@@ -156,7 +156,7 @@ export default function ReportsPage() {
               ))}
             </select>
           </Field>
-          {name === 'movement-dynamics' ? (
+          {reportName === 'movement-dynamics' ? (
             <>
               <Field label="From (UTC date)">
                 <input type="date" value={dateFrom} onChange={(event) => setDateFrom(event.target.value)} required />
@@ -180,8 +180,8 @@ export default function ReportsPage() {
               <input type="date" value={date} onChange={(event) => setDate(event.target.value)} required />
             </Field>
           )}
-          <button type="submit" className="primary" disabled={busy}>
-            {busy ? 'Running...' : 'Run report'}
+          <button type="submit" className="primary" disabled={submitting}>
+            {submitting ? 'Running...' : 'Run report'}
           </button>
         </div>
       </form>
@@ -190,8 +190,8 @@ export default function ReportsPage() {
         <section className="report-result">
           <div className="page-head">
             <h2>
-              {REPORTS[result.name]}
-              {result.name === 'movement-dynamics'
+              {REPORTS[result.reportName]}
+              {result.reportName === 'movement-dynamics'
                 ? `: ${result.report.dateFrom} to ${result.report.dateTo}`
                 : `: ${result.report.date}`}
             </h2>
@@ -203,9 +203,9 @@ export default function ReportsPage() {
             <p className="muted">No data for these parameters.</p>
           ) : (
             <>
-              {result.name === 'inventory-as-of' && <AsOfResult report={result.report} />}
-              {result.name === 'inventory-valuation' && <ValuationResult report={result.report} />}
-              {result.name === 'movement-dynamics' && <DynamicsResult report={result.report} />}
+              {result.reportName === 'inventory-as-of' && <AsOfResult report={result.report} />}
+              {result.reportName === 'inventory-valuation' && <ValuationResult report={result.report} />}
+              {result.reportName === 'movement-dynamics' && <DynamicsResult report={result.report} />}
             </>
           )}
         </section>

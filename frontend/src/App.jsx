@@ -9,6 +9,7 @@ import NotificationsPage from './NotificationsPage.jsx';
 import PartiesPage from './PartiesPage.jsx';
 import ProductsPage from './ProductsPage.jsx';
 import ReportsPage from './ReportsPage.jsx';
+import UsersPage from './UsersPage.jsx';
 
 export default function App() {
   return (
@@ -23,6 +24,7 @@ export default function App() {
             <Route path="/movements/:id" element={<MovementDetailPage />} />
             <Route path="/notifications" element={<NotificationsPage />} />
             <Route path="/reports" element={<ReportsPage />} />
+            <Route path="/users" element={<UsersPage />} />
             <Route
               path="/suppliers"
               element={<PartiesPage key="suppliers" title="Suppliers" singular="supplier" path="/suppliers" />}

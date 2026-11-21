@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
-import { api, getSessionToken, setSessionToken } from './api.js';
+import { apiRequest, getSessionToken, setSessionToken } from './api.js';
 
 const AuthContext = createContext(null);
 
@@ -11,7 +11,7 @@ export function AuthProvider({ children }) {
       return undefined;
     }
     let active = true;
-    api('/auth/me')
+    apiRequest('/auth/me')
       .then((user) => active && setState({ loading: false, user }))
       .catch(() => {
         setSessionToken(null);
@@ -34,7 +34,7 @@ export function AuthProvider({ children }) {
   }, []);
 
   const login = useCallback(async (username, password) => {
-    const result = await api('/auth/login', { method: 'POST', body: { username, password } });
+    const result = await apiRequest('/auth/login', { method: 'POST', body: { username, password } });
     setSessionToken(result.accessToken);
     setState({ loading: false, user: result.user });
   }, []);
@@ -44,11 +44,11 @@ export function AuthProvider({ children }) {
     setState({ loading: false, user: null });
   }, []);
 
-  const value = useMemo(
+  const authContextValue = useMemo(
     () => ({ ...state, isAdmin: state.user?.role === 'admin', login, logout }),
     [state, login, logout],
   );
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return <AuthContext.Provider value={authContextValue}>{children}</AuthContext.Provider>;
 }
 
 export function useAuth() {

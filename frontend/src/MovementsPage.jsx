@@ -1,39 +1,39 @@
 import { Link, useSearchParams } from 'react-router-dom';
 import { useState } from 'react';
-import { ErrorBox, Field, Pagination, Status } from './components.jsx';
-import { MOVEMENT_LABELS, formatUtc, money2 } from './format.js';
-import { useList } from './hooks.js';
+import { ErrorBox, Field, Pagination, ListState } from './components.jsx';
+import { MOVEMENT_LABELS, formatUtcDateTime, formatMoney } from './format.js';
+import { useApiData } from './hooks.js';
 
 const FILTERS = ['type', 'dateFrom', 'dateTo', 'search', 'productId'];
 
 export default function MovementsPage() {
-  const [params, setParams] = useSearchParams();
-  const applied = Object.fromEntries(FILTERS.map((name) => [name, params.get(name) || '']));
-  const page = Number(params.get('page') || 1);
-  const [draft, setDraft] = useState(applied);
-  const list = useList('/movements', { ...applied, page, limit: 25 });
+  const [queryParameters, setQueryParameters] = useSearchParams();
+  const appliedFilters = Object.fromEntries(FILTERS.map((name) => [name, queryParameters.get(name) || '']));
+  const page = Number(queryParameters.get('page') || 1);
+  const [draftFilters, setDraftFilters] = useState(appliedFilters);
+  const movementList = useApiData('/movements', { ...appliedFilters, page, limit: 25 });
 
   function apply(event) {
     event.preventDefault();
     const next = {};
     FILTERS.forEach((name) => {
-      if (draft[name]) {
-        next[name] = draft[name];
+      if (draftFilters[name]) {
+        next[name] = draftFilters[name];
       }
     });
-    setParams(next);
+    setQueryParameters(next);
   }
 
   function reset() {
-    setDraft(Object.fromEntries(FILTERS.map((name) => [name, ''])));
-    setParams({});
+    setDraftFilters(Object.fromEntries(FILTERS.map((name) => [name, ''])));
+    setQueryParameters({});
   }
 
-  function goToPage(value) {
-    setParams({ ...Object.fromEntries(Object.entries(applied).filter(([, v]) => v)), page: value });
+  function goToPage(pageNumber) {
+    setQueryParameters({ ...Object.fromEntries(Object.entries(appliedFilters).filter(([, filterValue]) => filterValue)), page: pageNumber });
   }
 
-  const set = (name) => (event) => setDraft({ ...draft, [name]: event.target.value });
+  const setFilter = (name) => (event) => setDraftFilters({ ...draftFilters, [name]: event.target.value });
 
   return (
     <>
@@ -57,7 +57,7 @@ export default function MovementsPage() {
 
       <form className="toolbar filters" onSubmit={apply}>
         <Field label="Type">
-          <select value={draft.type} onChange={set('type')}>
+          <select value={draftFilters.type} onChange={setFilter('type')}>
             <option value="">All types</option>
             {Object.entries(MOVEMENT_LABELS).map(([value, label]) => (
               <option key={value} value={value}>
@@ -67,28 +67,28 @@ export default function MovementsPage() {
           </select>
         </Field>
         <Field label="From (UTC date)">
-          <input type="date" value={draft.dateFrom} onChange={set('dateFrom')} />
+          <input type="date" value={draftFilters.dateFrom} onChange={setFilter('dateFrom')} />
         </Field>
         <Field label="To (UTC date)">
-          <input type="date" value={draft.dateTo} onChange={set('dateTo')} />
+          <input type="date" value={draftFilters.dateTo} onChange={setFilter('dateTo')} />
         </Field>
         <Field label="Document number">
-          <input value={draft.search} maxLength={20} onChange={set('search')} placeholder="RN-000001" />
+          <input value={draftFilters.search} maxLength={20} onChange={setFilter('search')} placeholder="RN-000001" />
         </Field>
         <button type="submit">Apply</button>
         <button type="button" onClick={reset}>
           Reset
         </button>
       </form>
-      {applied.productId && (
+      {appliedFilters.productId && (
         <p>
-          Showing movements of product {applied.productId}. <Link to="/movements">Show all</Link>
+          Showing movements of product {appliedFilters.productId}. <Link to="/movements">Show all</Link>
         </p>
       )}
 
-      <ErrorBox messages={list.error?.messages} />
-      {!list.error && (
-        <Status list={list} empty="No movements found.">
+      <ErrorBox messages={movementList.error?.messages} />
+      {!movementList.error && (
+        <ListState apiData={movementList} emptyMessage="No movements found.">
           <div className="table-wrap">
             <table>
               <thead>
@@ -103,25 +103,25 @@ export default function MovementsPage() {
                 </tr>
               </thead>
               <tbody>
-                {list.data?.items.map((movement) => (
+                {movementList.data?.items.map((movement) => (
                   <tr key={movement.id}>
                     <td>
                       <Link to={`/movements/${movement.id}`}>{movement.number}</Link>
                     </td>
                     <td>{MOVEMENT_LABELS[movement.type]}</td>
-                    <td>{formatUtc(movement.postedAt)}</td>
+                    <td>{formatUtcDateTime(movement.postedAt)}</td>
                     <td>{movement.partyName || movement.reason || '-'}</td>
                     <td className="num">{movement.lineCount}</td>
-                    <td className="num">{money2(movement.totalValue)}</td>
+                    <td className="num">{formatMoney(movement.totalValue)}</td>
                     <td>{movement.createdBy}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
-        </Status>
+        </ListState>
       )}
-      <Pagination data={list.data} page={page} onPage={goToPage} />
+      <Pagination data={movementList.data} page={page} onPageChange={goToPage} />
     </>
   );
 }

@@ -1,4 +1,4 @@
-export function money2(text) {
+export function formatMoney(text) {
   if (text === null || text === undefined) {
     return '-';
   }
@@ -10,7 +10,7 @@ export function money2(text) {
   return `${sign}${digits.slice(0, -2)}.${digits.slice(-2)}`;
 }
 
-export function formatUtc(value) {
+export function formatUtcDateTime(value) {
   return `${new Date(value).toISOString().slice(0, 16).replace('T', ' ')} UTC`;
 }
 

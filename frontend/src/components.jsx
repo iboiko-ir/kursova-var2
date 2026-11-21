@@ -31,35 +31,35 @@ export function Field({ label, errors, children }) {
   );
 }
 
-export function Pagination({ data, page, onPage }) {
+export function Pagination({ data, page, onPageChange }) {
   if (!data) {
     return null;
   }
   const pages = Math.max(1, Math.ceil(data.total / data.limit));
   return (
     <div className="pagination">
-      <button type="button" disabled={page <= 1} onClick={() => onPage(page - 1)}>
+      <button type="button" disabled={page <= 1} onClick={() => onPageChange(page - 1)}>
         Previous
       </button>
       <span>
         Page {page} of {pages} ({data.total} records)
       </span>
-      <button type="button" disabled={page >= pages} onClick={() => onPage(page + 1)}>
+      <button type="button" disabled={page >= pages} onClick={() => onPageChange(page + 1)}>
         Next
       </button>
     </div>
   );
 }
 
-export function Status({ list, empty, children }) {
-  if (list.error) {
-    return <ErrorBox messages={list.error.messages} />;
+export function ListState({ apiData, emptyMessage, children }) {
+  if (apiData.error) {
+    return <ErrorBox messages={apiData.error.messages} />;
   }
-  if (!list.data) {
+  if (!apiData.data) {
     return <p className="muted">Loading...</p>;
   }
-  if (list.data.items.length === 0) {
-    return <p className="muted">{empty}</p>;
+  if (apiData.data.items.length === 0) {
+    return <p className="muted">{emptyMessage}</p>;
   }
   return children;
 }

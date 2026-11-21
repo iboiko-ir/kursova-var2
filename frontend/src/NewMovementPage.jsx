@@ -1,25 +1,25 @@
 import { useState } from 'react';
 import { Link, Navigate, useNavigate, useSearchParams } from 'react-router-dom';
-import { api } from './api.js';
+import { apiRequest } from './api.js';
 import { ErrorBox, Field } from './components.jsx';
 import { MOVEMENT_LABELS } from './format.js';
-import { useList } from './hooks.js';
+import { useApiData } from './hooks.js';
 
-let lineKey = 0;
-const emptyLine = () => ({ key: (lineKey += 1), productId: '', quantity: '1', unitCost: '' });
+let lastLineKey = 0;
+const emptyLine = () => ({ key: (lastLineKey += 1), productId: '', quantity: '1', unitCost: '' });
 
 export default function NewMovementPage() {
   const [params] = useSearchParams();
   const type = params.get('type');
   const navigate = useNavigate();
-  const products = useList('/products', { limit: 200 });
-  const suppliers = useList('/suppliers', { limit: 200 });
-  const counterparties = useList('/counterparties', { limit: 200 });
+  const products = useApiData('/products', { limit: 200 });
+  const suppliers = useApiData('/suppliers', { limit: 200 });
+  const counterparties = useApiData('/counterparties', { limit: 200 });
   const [partyId, setPartyId] = useState('');
   const [reason, setReason] = useState('');
   const [lines, setLines] = useState([emptyLine()]);
   const [error, setError] = useState(null);
-  const [busy, setBusy] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
   if (!MOVEMENT_LABELS[type]) {
     return <Navigate to="/movements" replace />;
@@ -41,7 +41,7 @@ export default function NewMovementPage() {
 
   async function submit(event) {
     event.preventDefault();
-    setBusy(true);
+    setSubmitting(true);
     setError(null);
     const body = {
       type,
@@ -59,15 +59,15 @@ export default function NewMovementPage() {
       body.reason = reason;
     }
     try {
-      const posted = await api('/movements', { method: 'POST', body });
+      const posted = await apiRequest('/movements', { method: 'POST', body });
       navigate(`/movements/${posted.id}`);
     } catch (caught) {
       setError(caught);
-      setBusy(false);
+      setSubmitting(false);
     }
   }
 
-  const chosen = new Set(lines.map((line) => String(line.productId)));
+  const selectedProductIds = new Set(lines.map((line) => String(line.productId)));
 
   return (
     <>
@@ -145,7 +145,7 @@ export default function NewMovementPage() {
                           <option
                             key={item.id}
                             value={item.id}
-                            disabled={chosen.has(String(item.id)) && String(item.id) !== String(line.productId)}
+                            disabled={selectedProductIds.has(String(item.id)) && String(item.id) !== String(line.productId)}
                           >
                             {item.sku} - {item.name}
                           </option>
@@ -195,8 +195,8 @@ export default function NewMovementPage() {
         {isReceipt && <p className="muted">The unit cost is suggested from the catalog price and can be changed.</p>}
 
         <div className="actions">
-          <button type="submit" className="primary" disabled={busy || !products.data}>
-            {busy ? 'Posting...' : `Post ${MOVEMENT_LABELS[type].toLowerCase()}`}
+          <button type="submit" className="primary" disabled={submitting || !products.data}>
+            {submitting ? 'Posting...' : `Post ${MOVEMENT_LABELS[type].toLowerCase()}`}
           </button>
           <Link className="button" to="/movements">
             Cancel

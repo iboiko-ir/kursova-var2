@@ -1,34 +1,35 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { api, fieldErrors } from './api.js';
+import { apiRequest, groupFieldErrors } from './api.js';
 import { useAuth } from './auth.jsx';
-import { ErrorBox, Field, Pagination, Status } from './components.jsx';
-import { money2 } from './format.js';
-import { useDebounced, useList } from './hooks.js';
+import { ErrorBox, Field, Pagination, ListState } from './components.jsx';
+import { formatMoney } from './format.js';
+import { useDebouncedValue, useApiData } from './hooks.js';
 
-const FIELDS = ['name', 'sku', 'supplierId', 'catalogPrice', 'minStock'];
+const FORM_FIELDS = ['name', 'sku', 'supplierId', 'catalogPrice', 'minStock', 'initialQuantity'];
 
-function ProductForm({ initial, suppliers, onSaved, onCancel }) {
+function ProductForm({ initialProduct, suppliers, onSaved, onCancel }) {
   const [values, setValues] = useState({
-    name: initial.name,
-    sku: initial.sku,
-    supplierId: initial.supplier ? String(initial.supplier.id) : '',
-    catalogPrice: initial.catalogPrice,
-    minStock: String(initial.minStock),
+    name: initialProduct.name,
+    sku: initialProduct.sku,
+    supplierId: initialProduct.supplier ? String(initialProduct.supplier.id) : '',
+    catalogPrice: initialProduct.catalogPrice,
+    minStock: String(initialProduct.minStock),
+    initialQuantity: '0',
   });
   const [error, setError] = useState(null);
-  const [busy, setBusy] = useState(false);
-  const { fields, general } = fieldErrors(error, FIELDS);
-  const set = (name) => (event) => setValues({ ...values, [name]: event.target.value });
+  const [submitting, setSubmitting] = useState(false);
+  const { fields, general } = groupFieldErrors(error, FORM_FIELDS);
+  const setValue = (name) => (event) => setValues({ ...values, [name]: event.target.value });
 
   const options = [...suppliers];
-  if (initial.supplier && !options.some((supplier) => supplier.id === initial.supplier.id)) {
-    options.push(initial.supplier);
+  if (initialProduct.supplier && !options.some((supplier) => supplier.id === initialProduct.supplier.id)) {
+    options.push(initialProduct.supplier);
   }
 
   async function submit(event) {
     event.preventDefault();
-    setBusy(true);
+    setSubmitting(true);
     setError(null);
     const body = {
       name: values.name,
@@ -37,33 +38,36 @@ function ProductForm({ initial, suppliers, onSaved, onCancel }) {
       catalogPrice: values.catalogPrice.trim(),
       minStock: values.minStock.trim() === '' ? undefined : Number(values.minStock),
     };
+    if (!initialProduct.id) {
+      body.initialQuantity = values.initialQuantity.trim() === '' ? undefined : Number(values.initialQuantity);
+    }
     try {
-      if (initial.id) {
-        await api(`/products/${initial.id}`, { method: 'PATCH', body });
+      if (initialProduct.id) {
+        await apiRequest(`/products/${initialProduct.id}`, { method: 'PATCH', body });
       } else {
-        await api('/products', { method: 'POST', body });
+        await apiRequest('/products', { method: 'POST', body });
       }
       onSaved();
     } catch (caught) {
       setError(caught);
-      setBusy(false);
+      setSubmitting(false);
     }
   }
 
   return (
     <form className="panel form form-grid" onSubmit={submit}>
-      <h2>{initial.id ? 'Edit product' : 'New product'}</h2>
+      <h2>{initialProduct.id ? 'Edit product' : 'New product'}</h2>
       <div className="full">
         <ErrorBox messages={general} />
       </div>
       <Field label="Name" errors={fields.name}>
-        <input value={values.name} maxLength={150} onChange={set('name')} required />
+        <input value={values.name} maxLength={150} onChange={setValue('name')} required />
       </Field>
       <Field label="SKU" errors={fields.sku}>
-        <input value={values.sku} maxLength={50} onChange={set('sku')} required />
+        <input value={values.sku} maxLength={50} onChange={setValue('sku')} required />
       </Field>
       <Field label="Supplier" errors={fields.supplierId}>
-        <select value={values.supplierId} onChange={set('supplierId')} required>
+        <select value={values.supplierId} onChange={setValue('supplierId')} required>
           <option value="">Select a supplier</option>
           {options.map((supplier) => (
             <option key={supplier.id} value={supplier.id}>
@@ -74,15 +78,24 @@ function ProductForm({ initial, suppliers, onSaved, onCancel }) {
         </select>
       </Field>
       <Field label="Catalog price (UAH)" errors={fields.catalogPrice}>
-        <input value={values.catalogPrice} inputMode="decimal" onChange={set('catalogPrice')} required />
+        <input value={values.catalogPrice} inputMode="decimal" onChange={setValue('catalogPrice')} required />
       </Field>
       <Field label="Minimum stock" errors={fields.minStock}>
-        <input value={values.minStock} inputMode="numeric" onChange={set('minStock')} required />
+        <input value={values.minStock} inputMode="numeric" onChange={setValue('minStock')} required />
       </Field>
-      <p className="muted full">Quantity starts at zero and changes only through goods receipts.</p>
+      {!initialProduct.id && (
+        <Field label="Initial quantity" errors={fields.initialQuantity}>
+          <input value={values.initialQuantity} inputMode="numeric" onChange={setValue('initialQuantity')} />
+        </Field>
+      )}
+      <p className="muted full">
+        {initialProduct.id
+          ? 'Quantity changes only through movements.'
+          : 'An initial quantity above zero is recorded as a goods receipt from the supplier at the catalog price. Later, quantity changes only through movements.'}
+      </p>
       <div className="actions full">
-        <button type="submit" className="primary" disabled={busy}>
-          {busy ? 'Saving...' : 'Save product'}
+        <button type="submit" className="primary" disabled={submitting}>
+          {submitting ? 'Saving...' : 'Save product'}
         </button>
         <button type="button" onClick={onCancel}>
           Cancel
@@ -99,9 +112,9 @@ export default function ProductsPage() {
   const [page, setPage] = useState(1);
   const [editing, setEditing] = useState(null);
   const [actionError, setActionError] = useState(null);
-  const debouncedSearch = useDebounced(search);
-  const list = useList('/products', { page, limit: 25, search: debouncedSearch.trim(), includeArchived });
-  const suppliers = useList('/suppliers', { limit: 200 });
+  const debouncedSearch = useDebouncedValue(search);
+  const productList = useApiData('/products', { page, limit: 25, search: debouncedSearch.trim(), includeArchived });
+  const suppliers = useApiData('/suppliers', { limit: 200 });
 
   async function toggleArchive(product) {
     const action = product.archived ? 'restore' : 'archive';
@@ -113,8 +126,8 @@ export default function ProductsPage() {
     }
     setActionError(null);
     try {
-      await api(`/products/${product.id}/${action}`, { method: 'POST' });
-      list.reload();
+      await apiRequest(`/products/${product.id}/${action}`, { method: 'POST' });
+      productList.reload();
     } catch (caught) {
       setActionError(caught);
     }
@@ -139,12 +152,12 @@ export default function ProductsPage() {
       {editing && (
         <ProductForm
           key={editing.id || 'new'}
-          initial={editing}
+          initialProduct={editing}
           suppliers={suppliers.data?.items || []}
           onCancel={() => setEditing(null)}
           onSaved={() => {
             setEditing(null);
-            list.reload();
+            productList.reload();
           }}
         />
       )}
@@ -174,7 +187,7 @@ export default function ProductsPage() {
       </div>
 
       <ErrorBox messages={actionError?.messages} />
-      <Status list={list} empty="No products found.">
+      <ListState apiData={productList} emptyMessage="No products found.">
         <div className="table-wrap">
           <table>
             <thead>
@@ -192,7 +205,7 @@ export default function ProductsPage() {
               </tr>
             </thead>
             <tbody>
-              {list.data?.items.map((product) => (
+              {productList.data?.items.map((product) => (
                 <tr key={product.id} className={product.archived ? 'archived' : undefined}>
                   <td>{product.sku}</td>
                   <td>{product.name}</td>
@@ -200,7 +213,7 @@ export default function ProductsPage() {
                   <td className="num">{product.catalogPrice}</td>
                   <td className="num">{product.quantity}</td>
                   <td className="num">{product.minStock}</td>
-                  <td className="num">{money2(product.inventoryValue)}</td>
+                  <td className="num">{formatMoney(product.inventoryValue)}</td>
                   <td>
                     {product.archived ? 'Archived' : 'Active'}
                     {!product.archived && product.quantity <= product.minStock && <strong> - Low stock</strong>}
@@ -223,8 +236,8 @@ export default function ProductsPage() {
             </tbody>
           </table>
         </div>
-      </Status>
-      <Pagination data={list.data} page={page} onPage={setPage} />
+      </ListState>
+      <Pagination data={productList.data} page={page} onPageChange={setPage} />
     </>
   );
 }

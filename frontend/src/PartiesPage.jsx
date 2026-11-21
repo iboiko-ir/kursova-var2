@@ -1,31 +1,31 @@
 import { useState } from 'react';
-import { api, fieldErrors } from './api.js';
+import { apiRequest, groupFieldErrors } from './api.js';
 import { useAuth } from './auth.jsx';
-import { ErrorBox, Field, Pagination, Status } from './components.jsx';
-import { useDebounced, useList } from './hooks.js';
+import { ErrorBox, Field, Pagination, ListState } from './components.jsx';
+import { useDebouncedValue, useApiData } from './hooks.js';
 
-const FIELDS = ['name', 'contactDetails'];
+const FORM_FIELDS = ['name', 'contactDetails'];
 
 function PartyForm({ title, initial, onSaved, onCancel, path, singular }) {
   const [values, setValues] = useState({ name: initial.name, contactDetails: initial.contactDetails || '' });
   const [error, setError] = useState(null);
-  const [busy, setBusy] = useState(false);
-  const { fields, general } = fieldErrors(error, FIELDS);
+  const [submitting, setSubmitting] = useState(false);
+  const { fields, general } = groupFieldErrors(error, FORM_FIELDS);
 
   async function submit(event) {
     event.preventDefault();
-    setBusy(true);
+    setSubmitting(true);
     setError(null);
     try {
       if (initial.id) {
-        await api(`${path}/${initial.id}`, { method: 'PATCH', body: values });
+        await apiRequest(`${path}/${initial.id}`, { method: 'PATCH', body: values });
       } else {
-        await api(path, { method: 'POST', body: values });
+        await apiRequest(path, { method: 'POST', body: values });
       }
       onSaved();
     } catch (caught) {
       setError(caught);
-      setBusy(false);
+      setSubmitting(false);
     }
   }
 
@@ -50,8 +50,8 @@ function PartyForm({ title, initial, onSaved, onCancel, path, singular }) {
         />
       </Field>
       <div className="actions">
-        <button type="submit" className="primary" disabled={busy}>
-          {busy ? 'Saving...' : `Save ${singular}`}
+        <button type="submit" className="primary" disabled={submitting}>
+          {submitting ? 'Saving...' : `Save ${singular}`}
         </button>
         <button type="button" onClick={onCancel}>
           Cancel
@@ -68,8 +68,8 @@ export default function PartiesPage({ title, singular, path }) {
   const [page, setPage] = useState(1);
   const [editing, setEditing] = useState(null);
   const [actionError, setActionError] = useState(null);
-  const debouncedSearch = useDebounced(search);
-  const list = useList(path, { page, limit: 25, search: debouncedSearch.trim(), includeArchived });
+  const debouncedSearch = useDebouncedValue(search);
+  const partyList = useApiData(path, { page, limit: 25, search: debouncedSearch.trim(), includeArchived });
 
   async function toggleArchive(party) {
     const action = party.archived ? 'restore' : 'archive';
@@ -78,8 +78,8 @@ export default function PartiesPage({ title, singular, path }) {
     }
     setActionError(null);
     try {
-      await api(`${path}/${party.id}/${action}`, { method: 'POST' });
-      list.reload();
+      await apiRequest(`${path}/${party.id}/${action}`, { method: 'POST' });
+      partyList.reload();
     } catch (caught) {
       setActionError(caught);
     }
@@ -106,7 +106,7 @@ export default function PartiesPage({ title, singular, path }) {
           onCancel={() => setEditing(null)}
           onSaved={() => {
             setEditing(null);
-            list.reload();
+            partyList.reload();
           }}
         />
       )}
@@ -136,7 +136,7 @@ export default function PartiesPage({ title, singular, path }) {
       </div>
 
       <ErrorBox messages={actionError?.messages} />
-      <Status list={list} empty={`No ${title.toLowerCase()} found.`}>
+      <ListState apiData={partyList} emptyMessage={`No ${title.toLowerCase()} found.`}>
         <div className="table-wrap">
           <table>
             <thead>
@@ -148,7 +148,7 @@ export default function PartiesPage({ title, singular, path }) {
               </tr>
             </thead>
             <tbody>
-              {list.data?.items.map((party) => (
+              {partyList.data?.items.map((party) => (
                 <tr key={party.id} className={party.archived ? 'archived' : undefined}>
                   <td>{party.name}</td>
                   <td>{party.contactDetails || '-'}</td>
@@ -168,8 +168,8 @@ export default function PartiesPage({ title, singular, path }) {
             </tbody>
           </table>
         </div>
-      </Status>
-      <Pagination data={list.data} page={page} onPage={setPage} />
+      </ListState>
+      <Pagination data={partyList.data} page={page} onPageChange={setPage} />
     </>
   );
 }

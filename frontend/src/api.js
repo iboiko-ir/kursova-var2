@@ -34,7 +34,7 @@ export class ApiError extends Error {
   }
 }
 
-function toMessages(data, status) {
+function extractMessages(data, status) {
   if (data && Array.isArray(data.message)) {
     return data.message;
   }
@@ -57,14 +57,14 @@ export function getSessionToken() {
   return memoryToken || tokenStore.get();
 }
 
-export async function api(path, { method = 'GET', body, params } = {}) {
-  const query = new URLSearchParams();
-  Object.entries(params || {}).forEach(([key, value]) => {
+export async function apiRequest(path, { method = 'GET', body, params: queryParameters } = {}) {
+  const searchParameters = new URLSearchParams();
+  Object.entries(queryParameters || {}).forEach(([key, value]) => {
     if (value !== undefined && value !== null && value !== '' && value !== false) {
-      query.set(key, String(value));
+      searchParameters.set(key, String(value));
     }
   });
-  const url = `/api${path}${query.toString() ? `?${query}` : ''}`;
+  const url = `/api${path}${searchParameters.toString() ? `?${searchParameters}` : ''}`;
   const token = getSessionToken();
 
   let response;
@@ -86,12 +86,12 @@ export async function api(path, { method = 'GET', body, params } = {}) {
     if (response.status === 401 && token) {
       window.dispatchEvent(new Event('kursova:unauthorized'));
     }
-    throw new ApiError(response.status, toMessages(data, response.status));
+    throw new ApiError(response.status, extractMessages(data, response.status));
   }
   return data;
 }
 
-export function fieldErrors(error, fields) {
+export function groupFieldErrors(error, fields) {
   const result = {};
   const general = [];
   (error ? error.messages : []).forEach((message) => {
