@@ -1,4 +1,5 @@
 import { Controller, Dependencies, Get, ServiceUnavailableException } from '@nestjs/common';
+import { Public } from '../auth/decorators';
 import { ApiOkResponse, ApiOperation, ApiServiceUnavailableResponse, ApiTags } from '@nestjs/swagger';
 import { DataSource } from 'typeorm';
 
@@ -19,6 +20,7 @@ export class HealthController {
     this.dataSource = dataSource;
   }
 
+  @Public()
   @Get()
   @ApiOperation({ summary: 'Check API and database availability' })
   @ApiOkResponse({ description: 'API and database are available.', schema: healthySchema })
