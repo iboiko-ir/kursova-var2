@@ -1,0 +1,158 @@
+@startuml class-diagram
+title kursova - UML class diagram
+skinparam shadowing false
+skinparam monochrome true
+skinparam roundCorner 0
+skinparam classAttributeIconSize 0
+hide empty members
+
+package "Domain" {
+  class User {
+    id
+    username
+    passwordHash
+    role : admin | operator
+  }
+
+  class Supplier {
+    id
+    name
+    contactDetails
+    archived
+  }
+
+  class Counterparty {
+    id
+    name
+    contactDetails
+    archived
+  }
+
+  class Product {
+    id
+    name
+    sku : unique
+    catalogPrice
+    minStock
+    quantity
+    inventoryValue
+    archived
+  }
+
+  class StockMovement {
+    id
+    number : unique
+    type : receipt | shipment | write_off
+    postedAt : UTC
+    reason
+    supplierSnapshot
+    counterpartySnapshot
+  }
+
+  class StockMovementLine {
+    id
+    productNameSnapshot
+    skuSnapshot
+    quantity
+    unitCost
+    quantityDelta
+    valueDelta
+  }
+
+  class Notification {
+    id
+    type : low_stock
+    quantity
+    minStock
+    status : active | resolved
+    createdAt
+    resolvedAt
+  }
+}
+
+User "1" <-- "0..*" StockMovement : createdBy
+Supplier "1" <-- "0..*" Product : supplies
+Supplier "0..1" <-- "0..*" StockMovement : receipt from
+Counterparty "0..1" <-- "0..*" StockMovement : shipment to
+StockMovement "1" *-- "1..*" StockMovementLine : lines
+Product "1" <-- "0..*" StockMovementLine : moves
+Product "1" <-- "0..*" Notification : warns about
+
+package "Services" {
+  class AuthService {
+    login(username, password)
+  }
+  class ProductService
+  class PartyService
+  class MovementService {
+    post(type, payload, user)
+  }
+  class NotificationService
+  class ReportService {
+    generate(name, params)
+  }
+}
+
+MovementService ..> StockMovement : creates
+ProductService ..> Product : manages
+PartyService ..> Supplier : manages
+PartyService ..> Counterparty : manages
+NotificationService ..> Notification : manages
+AuthService ..> User : verifies
+
+package "Command pattern" {
+  interface StockCommand <<Command>> {
+    execute(context, movement)
+  }
+  class ReceiveGoodsCommand <<ConcreteCommand>>
+  class ShipGoodsCommand <<ConcreteCommand>>
+  class WriteOffGoodsCommand <<ConcreteCommand>>
+}
+
+StockCommand <|.. ReceiveGoodsCommand
+StockCommand <|.. ShipGoodsCommand
+StockCommand <|.. WriteOffGoodsCommand
+MovementService o--> StockCommand : invokes in one transaction
+ReceiveGoodsCommand ..> StockMovementLine : writes ledger lines
+ShipGoodsCommand ..> StockMovementLine : writes ledger lines
+WriteOffGoodsCommand ..> StockMovementLine : writes ledger lines
+ReceiveGoodsCommand ..> Product : changes stock
+ShipGoodsCommand ..> Product : changes stock
+WriteOffGoodsCommand ..> Product : changes stock
+
+package "Observer pattern" {
+  class StockChangeSubject <<Subject>> {
+    subscribe(observer)
+    notify(context, product)
+  }
+  interface StockObserver <<Observer>> {
+    onStockChanged(context, product)
+  }
+  class LowStockObserver <<ConcreteObserver>>
+}
+
+StockChangeSubject o--> "0..*" StockObserver : observers
+StockObserver <|.. LowStockObserver
+LowStockObserver ..> Notification : creates, updates, resolves
+ReceiveGoodsCommand ..> StockChangeSubject : notifies
+ShipGoodsCommand ..> StockChangeSubject : notifies
+WriteOffGoodsCommand ..> StockChangeSubject : notifies
+ProductService ..> StockChangeSubject : notifies after create, edit, archive
+
+package "Strategy pattern" {
+  interface ReportStrategy <<Strategy>> {
+    generate(params)
+  }
+  class InventoryAsOfStrategy <<ConcreteStrategy>>
+  class MovementDynamicsStrategy <<ConcreteStrategy>>
+  class InventoryValuationStrategy <<ConcreteStrategy>>
+}
+
+ReportStrategy <|.. InventoryAsOfStrategy
+ReportStrategy <|.. MovementDynamicsStrategy
+ReportStrategy <|.. InventoryValuationStrategy
+ReportService o--> ReportStrategy : chooses from whitelist
+InventoryAsOfStrategy ..> StockMovementLine : sums deltas
+MovementDynamicsStrategy ..> StockMovementLine : sums deltas
+InventoryValuationStrategy ..> StockMovementLine : sums deltas
+@enduml
