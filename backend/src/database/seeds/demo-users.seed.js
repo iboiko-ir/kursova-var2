@@ -1,6 +1,5 @@
 import { hashPassword } from '../../auth/password';
 
-// Demo-only accounts for local use. Existing accounts are never changed.
 export const DEMO_USERS = [
   { username: 'admin', password: 'admin-demo-123', role: 'admin' },
   { username: 'operator', password: 'operator-demo-123', role: 'operator' },

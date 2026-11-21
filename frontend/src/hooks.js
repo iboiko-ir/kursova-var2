@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { api } from './api.js';
 
-// This loads a list from the API again when the path or params change.
 export function useList(path, params) {
   const [state, setState] = useState({ loading: true, data: null, error: null });
   const [version, setVersion] = useState(0);

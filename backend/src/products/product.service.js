@@ -118,7 +118,6 @@ export class ProductService {
     }
   }
 
-  // Product changes run in one transaction, so later stock checks can join it.
   async write(operation) {
     try {
       return await this.dataSource.transaction(operation);

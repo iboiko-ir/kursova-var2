@@ -3,7 +3,6 @@ import { escapeLike } from '../common/page';
 
 const UNIQUE_VIOLATION = '23505';
 
-// This service manages suppliers and counterparties. Both have the same fields.
 export class PartyService {
   constructor(dataSource, schema, label) {
     this.dataSource = dataSource;
