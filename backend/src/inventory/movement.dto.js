@@ -15,6 +15,7 @@ import {
   MinLength,
   ValidateNested,
 } from 'class-validator';
+import { DAY_PATTERN } from '../common/dates';
 import { PaginationDto } from '../common/page';
 
 export const MOVEMENT_TYPES = ['receipt', 'shipment', 'write_off'];
@@ -22,7 +23,6 @@ export const MOVEMENT_TYPES = ['receipt', 'shipment', 'write_off'];
 const trim = ({ value }) => (typeof value === 'string' ? value.trim() : value);
 const costToString = ({ value }) => (typeof value === 'number' ? String(value) : value);
 const COST_PATTERN = /^\d{1,7}(\.\d{1,2})?$/;
-const DAY_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 
 export class MovementLineDto {
   @ApiProperty({ type: Number, minimum: 1 })

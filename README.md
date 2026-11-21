@@ -105,4 +105,11 @@ Each kind of movement is a command with an `execute` method. `ReceiveGoodsComman
 
 ### Strategy: reports
 
-Not implemented yet. It is added together with the reports.
+Each report is a strategy with a `generate` method and its own query and result structure: `InventoryAsOfStrategy` (quantity, unit cost and value on a date), `MovementDynamicsStrategy` (daily received, shipped and written-off quantities) and `InventoryValuationStrategy` (value by product and a grand total). `ReportService` is the context: it chooses a strategy from a short fixed list and delegates to it. This fits the application because the reports share the ledger but calculate different results, and a new report needs only a new class. All reports read the ledger deltas that the Command pattern writes, so history and valuation stay consistent.
+
+- [report-strategy.js](backend/src/reports/report-strategy.js) (contract)
+- [inventory-as-of.strategy.js](backend/src/reports/inventory-as-of.strategy.js)
+- [movement-dynamics.strategy.js](backend/src/reports/movement-dynamics.strategy.js)
+- [inventory-valuation.strategy.js](backend/src/reports/inventory-valuation.strategy.js)
+- [ledger-balances.js](backend/src/reports/ledger-balances.js) (shared ledger sums)
+- [report.service.js](backend/src/reports/report.service.js) (context)

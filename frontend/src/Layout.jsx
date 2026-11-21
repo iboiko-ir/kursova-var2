@@ -30,7 +30,7 @@ export default function Layout() {
 
   return (
     <>
-      <header className="topbar">
+      <header className="topbar no-print">
         <span className="brand">kursova</span>
         <nav aria-label="Main navigation">
           <NavLink to="/products">Products</NavLink>
@@ -39,6 +39,7 @@ export default function Layout() {
             Notifications
             {active > 0 && <span className="badge">{active}</span>}
           </NavLink>
+          <NavLink to="/reports">Reports</NavLink>
           <NavLink to="/suppliers">Suppliers</NavLink>
           <NavLink to="/counterparties">Counterparties</NavLink>
         </nav>

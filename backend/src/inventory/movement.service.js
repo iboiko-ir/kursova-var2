@@ -1,5 +1,6 @@
 import { BadRequestException, Dependencies, Injectable, NotFoundException } from '@nestjs/common';
 import { DataSource } from 'typeorm';
+import { parseUtcDay } from '../common/dates';
 import { ReceiveGoodsCommand } from './commands/receive-goods.command';
 import { ShipGoodsCommand } from './commands/ship-goods.command';
 import { WriteOffGoodsCommand } from './commands/write-off-goods.command';
@@ -16,14 +17,6 @@ const PARTY_TABLES = {
   supplier: { table: 'suppliers', label: 'Supplier' },
   counterparty: { table: 'counterparties', label: 'Counterparty' },
 };
-
-function parseUtcDay(text, field) {
-  const date = new Date(`${text}T00:00:00.000Z`);
-  if (Number.isNaN(date.getTime()) || date.toISOString().slice(0, 10) !== text) {
-    throw new BadRequestException(`${field} is not a valid date.`);
-  }
-  return date;
-}
 
 // This service is the invoker. It picks a command and runs it in one transaction.
 @Injectable()

@@ -365,3 +365,72 @@ tfoot td {
 a {
   color: var(--text);
 }
+
+.document-title {
+  margin-bottom: 12px;
+}
+
+.document-title h2 {
+  margin: 4px 0;
+  font-size: 1.2rem;
+}
+
+.document-brand {
+  font-weight: 700;
+}
+
+.print-only {
+  display: none;
+}
+
+.signatures {
+  justify-content: space-between;
+  gap: 24px;
+  margin-top: 32px;
+}
+
+@media print {
+  body {
+    background: #ffffff;
+  }
+
+  .no-print,
+  .topbar {
+    display: none !important;
+  }
+
+  .print-only {
+    display: flex;
+  }
+
+  .content {
+    max-width: none;
+    padding: 0;
+  }
+
+  .panel,
+  .table-wrap {
+    border-color: #000000;
+  }
+
+  th,
+  td {
+    color: #000000;
+    border: 1px solid #000000;
+  }
+
+  thead th,
+  tfoot th,
+  tfoot td,
+  table.details th {
+    background: #ffffff;
+  }
+
+  .table-wrap {
+    overflow: visible;
+  }
+
+  .panel {
+    margin-bottom: 12px;
+  }
+}

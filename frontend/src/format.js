@@ -19,3 +19,9 @@ export const MOVEMENT_LABELS = {
   shipment: 'Shipment',
   write_off: 'Write-off',
 };
+
+export const DOCUMENT_TITLES = {
+  receipt: 'Goods receipt note',
+  shipment: 'Shipment note',
+  write_off: 'Write-off act',
+};
